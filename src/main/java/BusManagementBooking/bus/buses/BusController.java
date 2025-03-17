@@ -28,4 +28,11 @@ public class BusController {
     public ResponseEntity<List<Bus>> getBuses() {
         return ResponseEntity.ok(busServiceImpl.getBuses());
     }
+    
+    @GetMapping("/search")
+    public ResponseEntity<List<Bus>> searchBuses(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String route) {
+        return ResponseEntity.ok(busServiceImpl.searchBuses(name, route, null, null));
+    }
 }

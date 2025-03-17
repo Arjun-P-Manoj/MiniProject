@@ -38,4 +38,14 @@ public class UserController {
     public ResponseEntity<Optional<User>> getUserByEmail(@PathVariable String email) {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
+    
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
+        try {
+            User authenticatedUser = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+            return ResponseEntity.ok(authenticatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid email or password");
+        }
+    }
 }

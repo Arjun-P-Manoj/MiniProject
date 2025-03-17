@@ -8,26 +8,43 @@ import UserList from './components/UserList';
 import AddBus from './components/AddBus';
 import AddBooking from './components/AddBooking';
 import AddUser from './components/AddUser';
+import Login from './components/Login';
+import Signup from './components/Signup';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 import './styles/global.css';
 
 function App() {
   return (
-    <Router>
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/buses" element={<BusList />} />
-            <Route path="/bookings" element={<BookingList />} />
-            <Route path="/users" element={<UserList />} />
-            <Route path="/buses/add" element={<AddBus />} />
-            <Route path="/users/add" element={<AddUser />} />
-            <Route path="/bookings/add" element={<AddBooking />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="app">
+          <Navbar />
+          <main className="main-content">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/buses" element={<BusList />} />
+              
+              {/* Protected routes for authenticated users */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/bookings" element={<BookingList />} />
+                <Route path="/bookings/add" element={<AddBooking />} />
+              </Route>
+              
+              {/* Protected routes for admins */}
+              <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+                <Route path="/users" element={<UserList />} />
+                <Route path="/users/add" element={<AddUser />} />
+                <Route path="/buses/add" element={<AddBus />} />
+              </Route>
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

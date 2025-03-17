@@ -12,6 +12,7 @@ const api = axios.create({
 
 // Bus endpoints
 export const getBuses = () => api.get('/bus');
+export const searchBuses = (params) => api.get('/bus/search', { params });
 export const addBus = (busData) => api.post('/bus', busData);
 export const deleteBus = (id) => api.delete(`/bus/${id}`);
 

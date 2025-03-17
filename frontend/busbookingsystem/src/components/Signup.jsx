@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { login } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { addUser } from '../services/api';
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
+    age: '',
+    gender: '',
+    role: 'USER', // Default role
     password: ''
   });
   const [loading, setLoading] = useState(false);
@@ -27,24 +29,28 @@ const Login = () => {
     setError(null);
 
     try {
-      const response = await login(formData);
-      // Use the context to set the user
-      authLogin(response.data);
-      navigate('/buses');
+      // Convert age to integer
+      const userData = {
+        ...formData,
+        age: parseInt(formData.age)
+      };
+      
+      await addUser(userData);
+      navigate('/login');
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Invalid email or password');
+      console.error('Error during signup:', err);
+      setError('Failed to register account. Please try again.');
       setLoading(false);
     }
   };
 
   return (
     <div className="container">
-      <div className="card" style={{ maxWidth: '400px', margin: '2rem auto' }}>
+      <div className="card" style={{ maxWidth: '500px', margin: '2rem auto' }}>
         <div className="page-header" style={{ marginBottom: '2rem' }}>
-          <h1 className="page-title">Welcome Back</h1>
+          <h1 className="page-title">Create an Account</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-            Please sign in to your account
+            Sign up to book bus tickets
           </p>
         </div>
 
@@ -58,6 +64,20 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              className="form-input"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="Enter your full name"
+            />
+          </div>
+
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
             <input
@@ -73,6 +93,37 @@ const Login = () => {
           </div>
 
           <div className="form-group">
+            <label className="form-label" htmlFor="age">Age</label>
+            <input
+              type="number"
+              id="age"
+              name="age"
+              className="form-input"
+              value={formData.age}
+              onChange={handleChange}
+              required
+              placeholder="Enter your age"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="gender">Gender</label>
+            <select
+              id="gender"
+              name="gender"
+              className="form-input"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select Gender</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
             <input
               type="password"
@@ -82,7 +133,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Enter your password"
+              placeholder="Create a password"
             />
           </div>
 
@@ -95,15 +146,15 @@ const Login = () => {
             {loading ? (
               <>
                 <div className="loading-spinner"></div>
-                Signing in...
+                Creating Account...
               </>
             ) : (
-              'Sign In'
+              'Sign Up'
             )}
           </button>
           
           <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-            Don't have an account? <Link to="/signup" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Sign up</Link>
+            Already have an account? <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Sign in</Link>
           </div>
         </form>
       </div>
@@ -111,4 +162,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Signup; 

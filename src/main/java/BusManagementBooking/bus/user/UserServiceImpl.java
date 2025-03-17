@@ -39,4 +39,19 @@ public class UserServiceImpl implements UserService {
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+    
+    @Override
+    public User authenticateUser(String email, String password) throws Exception {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            // In a real application, you should use password hashing
+            if (password.equals(user.getPassword())) {
+                return user;
+            }
+        }
+        
+        throw new Exception("Authentication failed");
+    }
 }

@@ -1,6 +1,5 @@
 package BusManagementBooking.bus.buses;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -9,12 +8,8 @@ import java.util.List;
 @Service
 public class BusServiceImpl implements BusService {
 
-    private final BusRepository busRepository;
-
     @Autowired
-    public BusServiceImpl(BusRepository busRepository) {
-        this.busRepository = busRepository;
-    }
+    private BusRepository busRepository;
 
     @Override
     public void addBus(BusAddRequestDTO busAddRequestDTO) {
@@ -25,14 +20,40 @@ public class BusServiceImpl implements BusService {
                 busAddRequestDTO.getArrivalTime(),
                 busAddRequestDTO.getAvailableSeats(),
                 busAddRequestDTO.getTotalSeats(),
-                BigDecimal.valueOf(busAddRequestDTO.getPrice())
+                new BigDecimal(busAddRequestDTO.getPrice())
         );
-
         busRepository.save(bus);
     }
 
     @Override
     public List<Bus> getBuses() {
+        return busRepository.findAll();
+    }
+    
+    @Override
+    public List<Bus> searchBuses(String name, String route, String departure, String arrival) {
+        boolean hasName = name != null && !name.isEmpty();
+        boolean hasRoute = route != null && !route.isEmpty();
+        
+        // Both name and route provided
+        if (hasName && hasRoute) {
+            List<Bus> routeResults = busRepository.findByRouteContainingIgnoreCase(route);
+            return routeResults.stream()
+                .filter(bus -> bus.getName().toLowerCase().contains(name.toLowerCase()))
+                .toList();
+        }
+        
+        // Only name provided
+        if (hasName) {
+            return busRepository.findByNameContainingIgnoreCase(name);
+        }
+        
+        // Only route provided
+        if (hasRoute) {
+            return busRepository.findByRouteContainingIgnoreCase(route);
+        }
+        
+        // No parameters - return all buses
         return busRepository.findAll();
     }
 }

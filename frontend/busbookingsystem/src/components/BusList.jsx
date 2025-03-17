@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBuses, deleteBus } from '../services/api';
+import { getBuses, deleteBus, searchBuses } from '../services/api';
 
 const BusList = () => {
   const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useState({
+    name: '',
+    route: ''
+  });
 
   useEffect(() => {
     fetchBuses();
@@ -15,7 +19,7 @@ const BusList = () => {
   const fetchBuses = async () => {
     try {
       const response = await getBuses();
-      console.log('Buses data:', response.data); // Log the response to see the actual structure
+      console.log('Buses data:', response.data);
       setBuses(response.data);
       setLoading(false);
     } catch (err) {
@@ -23,6 +27,40 @@ const BusList = () => {
       setError('Failed to fetch buses');
       setLoading(false);
     }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Always perform search even if fields are empty
+      const params = { ...searchParams };
+      
+      const response = await searchBuses(params);
+      setBuses(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error searching buses:', err);
+      setError('Failed to search buses');
+      setLoading(false);
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams({
+      ...searchParams,
+      [name]: value
+    });
+  };
+
+  const clearSearch = () => {
+    setSearchParams({
+      name: '',
+      route: ''
+    });
+    fetchBuses();
   };
 
   const handleDelete = async (id) => {
@@ -65,6 +103,48 @@ const BusList = () => {
         <button className="btn btn-primary" onClick={() => navigate('/buses/add')}>
           Add New Bus
         </button>
+      </div>
+      
+      <div className="card mb-4">
+        <h2 className="text-lg font-semibold mb-4">Search Buses</h2>
+        <form onSubmit={handleSearch} className="search-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label" htmlFor="name">Bus Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                className="form-input"
+                placeholder="e.g. Express Volvo"
+                value={searchParams.name}
+                onChange={handleSearchInputChange}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label" htmlFor="route">Route</label>
+              <input
+                type="text"
+                id="route"
+                name="route"
+                className="form-input"
+                placeholder="e.g. Mumbai to Delhi"
+                value={searchParams.route}
+                onChange={handleSearchInputChange}
+              />
+            </div>
+          </div>
+          
+          <div className="form-buttons">
+            <button type="submit" className="btn btn-primary">
+              Search
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={clearSearch}>
+              Clear
+            </button>
+          </div>
+        </form>
       </div>
 
       <div className="table-container">
