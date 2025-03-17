@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBuses, deleteBus, searchBuses } from '../services/api';
+import { getBuses, searchBuses } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const BusList = () => {
   const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [searchParams, setSearchParams] = useState({
     name: '',
     route: ''
@@ -63,16 +65,8 @@ const BusList = () => {
     fetchBuses();
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this bus?')) {
-      try {
-        await deleteBus(id);
-        fetchBuses();
-      } catch (err) {
-        console.error('Error deleting bus:', err);
-        setError('Failed to delete bus');
-      }
-    }
+  const handleBookNow = (busId) => {
+    navigate(`/bookings/add?busId=${busId}`);
   };
 
   if (loading) {
@@ -99,10 +93,12 @@ const BusList = () => {
   return (
     <div className="container">
       <div className="page-header">
-        <h1 className="page-title">Bus Management</h1>
-        <button className="btn btn-primary" onClick={() => navigate('/buses/add')}>
-          Add New Bus
-        </button>
+        <h1 className="page-title">Available Buses</h1>
+        {currentUser && currentUser.role === 'ADMIN' && (
+          <button className="btn btn-primary" onClick={() => navigate('/buses/add')}>
+            Add New Bus
+          </button>
+        )}
       </div>
       
       <div className="card mb-4">
@@ -173,20 +169,21 @@ const BusList = () => {
                   <td>{bus.totalSeats}</td>
                   <td>₹{bus.price}</td>
                   <td>
-                    <div className="flex gap-2">
+                    {currentUser ? (
                       <button
-                        className="btn btn-secondary"
-                        onClick={() => navigate(`/buses/edit/${bus.id}`)}
+                        className="btn btn-success"
+                        onClick={() => handleBookNow(bus.id)}
                       >
-                        Edit
+                        Book Now
                       </button>
+                    ) : (
                       <button
-                        className="btn btn-danger"
-                        onClick={() => handleDelete(bus.id)}
+                        className="btn btn-success"
+                        onClick={() => navigate('/login')}
                       >
-                        Delete
+                        Login to Book
                       </button>
-                    </div>
+                    )}
                   </td>
                 </tr>
               ))

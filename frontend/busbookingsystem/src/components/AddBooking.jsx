@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { addBooking, getBuses, getUsers } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const AddBooking = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { currentUser } = useAuth();
+  const queryParams = new URLSearchParams(location.search);
+  const busIdFromUrl = queryParams.get('busId');
+  
   const [formData, setFormData] = useState({
-    userId: '',
-    busId: '',
+    userId: currentUser?.id || '',
+    busId: busIdFromUrl || '',
     bookingDate: '',
     seatNumber: '',
     amount: '',
@@ -14,6 +20,7 @@ const AddBooking = () => {
   });
   const [buses, setBuses] = useState([]);
   const [users, setUsers] = useState([]);
+  const [selectedBus, setSelectedBus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -26,13 +33,26 @@ const AddBooking = () => {
         ]);
         setBuses(busesResponse.data);
         setUsers(usersResponse.data);
+        
+        // If busId was provided, find the selected bus to display info
+        if (busIdFromUrl) {
+          const bus = busesResponse.data.find(b => b.id === parseInt(busIdFromUrl));
+          if (bus) {
+            setSelectedBus(bus);
+            // Pre-fill amount based on bus price
+            setFormData(prev => ({
+              ...prev,
+              amount: bus.price
+            }));
+          }
+        }
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load buses and users');
       }
     };
     fetchData();
-  }, []);
+  }, [busIdFromUrl]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,6 +60,17 @@ const AddBooking = () => {
       ...prev,
       [name]: value
     }));
+    
+    // When bus selection changes, update amount from bus price
+    if (name === 'busId') {
+      const selectedBus = buses.find(bus => bus.id === parseInt(value));
+      if (selectedBus) {
+        setFormData(prev => ({
+          ...prev,
+          amount: selectedBus.price
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -70,7 +101,7 @@ const AddBooking = () => {
   return (
     <div className="container">
       <div className="page-header">
-        <h1 className="page-title">Add New Booking</h1>
+        <h1 className="page-title">Book Your Ticket</h1>
       </div>
 
       {error && (
@@ -82,26 +113,41 @@ const AddBooking = () => {
         </div>
       )}
 
+      {selectedBus && (
+        <div className="card mb-4">
+          <h2 className="text-lg font-semibold mb-2">{selectedBus.name}</h2>
+          <p className="text-sm mb-1"><strong>Route:</strong> {selectedBus.route}</p>
+          <p className="text-sm mb-1"><strong>Departure:</strong> {selectedBus.departureTime}</p>
+          <p className="text-sm mb-1"><strong>Arrival:</strong> {selectedBus.arrivalTime}</p>
+          <p className="text-sm mb-1"><strong>Available Seats:</strong> {selectedBus.availableSeats}</p>
+          <p className="text-sm"><strong>Price:</strong> ₹{selectedBus.price}</p>
+        </div>
+      )}
+
       <div className="card">
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="userId">User</label>
-            <select
-              id="userId"
-              name="userId"
-              className="form-input"
-              value={formData.userId}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select User</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
-            </select>
-          </div>
+          {currentUser?.role === 'ADMIN' ? (
+            <div className="form-group">
+              <label className="form-label" htmlFor="userId">User</label>
+              <select
+                id="userId"
+                name="userId"
+                className="form-input"
+                value={formData.userId}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select User</option>
+                {users.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <input type="hidden" name="userId" value={formData.userId} />
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="busId">Bus</label>
@@ -145,11 +191,13 @@ const AddBooking = () => {
               value={formData.seatNumber}
               onChange={handleChange}
               required
+              min="1"
+              max={selectedBus ? selectedBus.availableSeats : 100}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="amount">Amount</label>
+            <label className="form-label" htmlFor="amount">Amount (₹)</label>
             <input
               type="number"
               id="amount"
@@ -159,30 +207,17 @@ const AddBooking = () => {
               onChange={handleChange}
               step="0.01"
               required
+              readOnly={!currentUser?.role === 'ADMIN'}
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="status">Status</label>
-            <select
-              id="status"
-              name="status"
-              className="form-input"
-              value={formData.status}
-              onChange={handleChange}
-              required
-            >
-              <option value="PENDING">Pending</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
+          <input type="hidden" name="status" value={formData.status} />
 
           <div className="flex gap-4">
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => navigate('/bookings')}
+              onClick={() => navigate('/buses')}
             >
               Cancel
             </button>
@@ -194,10 +229,10 @@ const AddBooking = () => {
               {loading ? (
                 <>
                   <div className="loading-spinner"></div>
-                  Adding...
+                  Booking...
                 </>
               ) : (
-                'Add Booking'
+                'Book Ticket'
               )}
             </button>
           </div>
