@@ -22,7 +22,7 @@ public class Booking {
     private LocalDateTime bookingDate;
 
     @Column(name = "seat_number", nullable = false)
-    private int seatNumber;
+    private String seatNumber;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
@@ -33,7 +33,7 @@ public class Booking {
     // Constructors
     public Booking() {}
 
-    public Booking(Long userId, Long busId, LocalDateTime bookingDate, int seatNumber, BigDecimal amount, String status) {
+    public Booking(Long userId, Long busId, LocalDateTime bookingDate, String seatNumber, BigDecimal amount, String status) {
         this.userId = userId;
         this.busId = busId;
         this.bookingDate = bookingDate;
@@ -75,11 +75,11 @@ public class Booking {
         this.bookingDate = bookingDate;
     }
 
-    public int getSeatNumber() {
+    public String getSeatNumber() {
         return seatNumber;
     }
 
-    public void setSeatNumber(int seatNumber) {
+    public void setSeatNumber(String seatNumber) {
         this.seatNumber = seatNumber;
     }
 

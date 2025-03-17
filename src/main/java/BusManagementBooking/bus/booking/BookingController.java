@@ -1,5 +1,6 @@
 package BusManagementBooking.bus.booking;
 
+import BusManagementBooking.bus.buses.BusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,9 @@ public class BookingController {
 
     @Autowired
     private BookingServiceImpl bookingServiceImpl;
+    
+    @Autowired
+    private BusRepository busRepository;
 
     @GetMapping("health")
     public String checkAlive() {
@@ -24,6 +28,7 @@ public class BookingController {
     public ResponseEntity<?> addBooking(@RequestBody BookingAddRequestDTO bookingAddRequestDTO) {
         try {
             System.out.println("Received booking request: " + bookingAddRequestDTO);
+            
             // Validate required fields in the controller
             if (bookingAddRequestDTO.getBusId() == null) {
                 return ResponseEntity.badRequest().body("Bus ID is required");
@@ -31,6 +36,15 @@ public class BookingController {
             
             if (bookingAddRequestDTO.getUserId() == null) {
                 return ResponseEntity.badRequest().body("User ID is required");
+            }
+            
+            if (bookingAddRequestDTO.getSeatNumber() == null || bookingAddRequestDTO.getSeatNumber().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Seat number is required");
+            }
+            
+            // Validate if bus exists
+            if (!busRepository.existsById(bookingAddRequestDTO.getBusId())) {
+                return ResponseEntity.badRequest().body("Bus with ID " + bookingAddRequestDTO.getBusId() + " does not exist");
             }
             
             bookingServiceImpl.addBooking(bookingAddRequestDTO);

@@ -7,14 +7,14 @@ public class BookingAddRequestDTO {
     private Long userId;
     private Long busId;
     private LocalDateTime bookingDate;
-    private int seatNumber;
+    private String seatNumber;
     private BigDecimal amount;
     private String status;
 
     // Constructors
     public BookingAddRequestDTO() {}
 
-    public BookingAddRequestDTO(Long userId, Long busId, LocalDateTime bookingDate, int seatNumber, BigDecimal amount, String status) {
+    public BookingAddRequestDTO(Long userId, Long busId, LocalDateTime bookingDate, String seatNumber, BigDecimal amount, String status) {
         this.userId = userId;
         this.busId = busId;
         this.bookingDate = bookingDate;
@@ -48,11 +48,11 @@ public class BookingAddRequestDTO {
         this.bookingDate = bookingDate;
     }
 
-    public int getSeatNumber() {
+    public String getSeatNumber() {
         return seatNumber;
     }
 
-    public void setSeatNumber(int seatNumber) {
+    public void setSeatNumber(String seatNumber) {
         this.seatNumber = seatNumber;
     }
 
