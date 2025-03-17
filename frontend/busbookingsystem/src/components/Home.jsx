@@ -22,7 +22,7 @@ const Home = () => {
               Book Now
             </Link>
             {!currentUser && (
-              <Link to="/register" className="premium-btn premium-btn-secondary premium-hero-btn">
+              <Link to="/signup" className="premium-btn premium-btn-secondary premium-hero-btn">
                 Create Account
               </Link>
             )}
