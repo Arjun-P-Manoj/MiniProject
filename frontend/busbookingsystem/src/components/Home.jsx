@@ -8,7 +8,7 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
-          <h1 className="hero-title">Professional Bus Booking System</h1>
+          <h1 className="hero-title">Bus Booking System</h1>
           <p className="hero-subtitle">
             Experience seamless bus travel with our enterprise-grade booking platform. 
             Find the best routes, book tickets instantly, and enjoy a comfortable journey across the country.

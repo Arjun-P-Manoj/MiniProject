@@ -5,4 +5,5 @@ import java.util.List;
 public interface BookingService {
     void addBooking(BookingAddRequestDTO bookingAddRequestDTO);
     List<Booking> getBookings();
+    List<Booking> getBookingsByUserId(Long userId);
 }

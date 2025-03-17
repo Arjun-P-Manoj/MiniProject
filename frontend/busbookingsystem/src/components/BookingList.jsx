@@ -1,21 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBookings, deleteBooking } from '../services/api';
+import { getBookings, deleteBooking, getUserBookings } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+    
     fetchBookings();
-  }, []);
+  }, [currentUser, navigate]);
 
   const fetchBookings = async () => {
     try {
-      const response = await getBookings();
-      console.log('Bookings data:', response.data); // Log the response to see the actual structure
+      let response;
+      
+      // If user is admin, fetch all bookings, otherwise fetch only user's bookings
+      if (currentUser && currentUser.role === 'ADMIN') {
+        response = await getBookings();
+      } else if (currentUser) {
+        response = await getUserBookings(currentUser.id);
+      } else {
+        // Should not happen since we redirect above, but just in case
+        navigate('/login');
+        return;
+      }
+      
+      console.log('Bookings data:', response.data);
       setBookings(response.data);
       setLoading(false);
     } catch (err) {
@@ -74,9 +93,11 @@ const BookingList = () => {
   return (
     <div className="container">
       <div className="page-header">
-        <h1 className="page-title">Booking Management</h1>
-        <button className="btn btn-primary" onClick={() => navigate('/bookings/add')}>
-          Add New Booking
+        <h1 className="page-title">
+          {currentUser && currentUser.role === 'ADMIN' ? 'All Bookings' : 'My Bookings'}
+        </h1>
+        <button className="btn btn-primary" onClick={() => navigate('/buses')}>
+          Book a Ticket
         </button>
       </div>
 
@@ -85,7 +106,7 @@ const BookingList = () => {
           <thead>
             <tr>
               <th>Booking ID</th>
-              <th>User ID</th>
+              {currentUser && currentUser.role === 'ADMIN' && <th>User ID</th>}
               <th>Bus ID</th>
               <th>Booking Date</th>
               <th>Seat Number</th>
@@ -99,7 +120,7 @@ const BookingList = () => {
               bookings.map((booking) => (
                 <tr key={booking.id}>
                   <td>{booking.id}</td>
-                  <td>{booking.userId}</td>
+                  {currentUser && currentUser.role === 'ADMIN' && <td>{booking.userId}</td>}
                   <td>{booking.busId}</td>
                   <td>{booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'N/A'}</td>
                   <td>{booking.seatNumber}</td>
@@ -111,17 +132,19 @@ const BookingList = () => {
                   </td>
                   <td>
                     <div className="flex gap-2">
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => navigate(`/bookings/edit/${booking.id}`)}
-                      >
-                        Edit
-                      </button>
+                      {currentUser && currentUser.role === 'ADMIN' && (
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => navigate(`/bookings/edit/${booking.id}`)}
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         className="btn btn-danger"
                         onClick={() => handleDelete(booking.id)}
                       >
-                        Delete
+                        {currentUser && currentUser.role === 'ADMIN' ? 'Delete' : 'Cancel'}
                       </button>
                     </div>
                   </td>
@@ -129,7 +152,7 @@ const BookingList = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center">No bookings found</td>
+                <td colSpan={currentUser && currentUser.role === 'ADMIN' ? 8 : 7} className="text-center">No bookings found</td>
               </tr>
             )}
           </tbody>

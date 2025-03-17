@@ -18,6 +18,7 @@ export const deleteBus = (id) => api.delete(`/bus/${id}`);
 
 // Booking endpoints
 export const getBookings = () => api.get('/booking');
+export const getUserBookings = (userId) => api.get(`/booking/user/${userId}`);
 export const addBooking = (bookingData) => api.post('/booking', bookingData);
 export const deleteBooking = (id) => api.delete(`/booking/${id}`);
 
