@@ -1,109 +1,217 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/Home.css';
+import { useAuth } from '../context/AuthContext';
+import busImages from '../assets/busImages';
 
 const Home = () => {
+  const { currentUser } = useAuth();
+
   return (
     <div className="home-container">
       {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">Bus Booking System</h1>
-          <p className="hero-subtitle">
-            Experience seamless bus travel with our enterprise-grade booking platform. 
-            Find the best routes, book tickets instantly, and enjoy a comfortable journey across the country.
+      <section className="premium-hero-section">
+        <div className="premium-hero-content">
+          <h1 className="premium-hero-title">
+            Your Journey, <span className="text-highlight">Simplified</span>
+          </h1>
+          <p className="premium-hero-subtitle">
+            Experience seamless bus travel booking with priority seating for those who need it most.
           </p>
-          <Link to="/buses" className="hero-cta">
-            Book Your Journey
-          </Link>
+          <div className="premium-hero-actions">
+            <Link to="/buses" className="premium-btn premium-btn-primary premium-hero-btn">
+              Book Now
+            </Link>
+            {!currentUser && (
+              <Link to="/register" className="premium-btn premium-btn-secondary premium-hero-btn">
+                Create Account
+              </Link>
+            )}
+          </div>
+        </div>
+        <div className="premium-hero-image-container">
+          <img 
+            src={busImages.luxuryBus} 
+            alt="Luxury Bus" 
+            className="premium-hero-image" 
+          />
+          <div className="premium-hero-image-overlay"></div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="features-section">
-        <div className="features-content">
-          <h2 className="section-title">Our Service Benefits</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="feature-title">Enterprise-Grade Platform</h3>
-              <p className="feature-description">
-                Our advanced booking system is built for reliability and performance, ensuring your journey planning is seamless and efficient at all times.
-              </p>
-            </div>
+      <section className="premium-features-section">
+        <div className="section-header">
+          <h2 className="section-title">Why Choose Our Service?</h2>
+          <p className="section-subtitle">We prioritize your comfort, safety, and convenience</p>
+        </div>
 
-            <div className="feature-card">
-              <div className="feature-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h3 className="feature-title">Secure Transactions</h3>
-              <p className="feature-description">
-                Industry-leading security protocols protect your personal and payment information, giving you complete peace of mind when booking.
-              </p>
+        <div className="premium-features-grid">
+          <div className="premium-feature-card">
+            <div className="feature-icon-container">
+              <svg className="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 9H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2v-6a2 2 0 00-2-2z" />
+                <path d="M16 16h.01" />
+                <path d="M20 9v-.5A2.5 2.5 0 0017.5 6H16V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H6.5A2.5 2.5 0 004 8.5V9" />
+                <path d="M8 16h.01" />
+              </svg>
             </div>
+            <h3 className="feature-title">Priority Seating</h3>
+            <p className="feature-description">
+              We offer specialized seating for elderly and pregnant passengers, ensuring their comfort and safety.
+            </p>
+          </div>
 
-            <div className="feature-card">
-              <div className="feature-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h.5A2.5 2.5 0 0020 5.5v-1.65" />
-                </svg>
-              </div>
-              <h3 className="feature-title">Comprehensive Coverage</h3>
-              <p className="feature-description">
-                Access an extensive network of routes covering major business hubs, metropolitan areas, and regional destinations throughout the country.
-              </p>
+          <div className="premium-feature-card">
+            <div className="feature-icon-container">
+              <svg className="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
             </div>
+            <h3 className="feature-title">Extensive Network</h3>
+            <p className="feature-description">
+              Wide coverage across major cities and towns with multiple route options to choose from.
+            </p>
+          </div>
+
+          <div className="premium-feature-card">
+            <div className="feature-icon-container">
+              <svg className="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <h3 className="feature-title">Safe Travel</h3>
+            <p className="feature-description">
+              All our buses are regularly serviced and maintained to the highest safety standards.
+            </p>
+          </div>
+
+          <div className="premium-feature-card">
+            <div className="feature-icon-container">
+              <svg className="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h3 className="feature-title">24/7 Support</h3>
+            <p className="feature-description">
+              Our customer service team is available around the clock to assist with any questions or concerns.
+            </p>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="how-it-works-section">
-        <div className="steps-content">
-          <h2 className="section-title">Streamlined Booking Process</h2>
-          <div className="steps-container">
-            <div className="step-card">
-              <div className="step-number">1</div>
-              <h3 className="step-title">Select Your Route</h3>
+      <section className="premium-how-it-works-section">
+        <div className="section-header">
+          <h2 className="section-title">How It Works</h2>
+          <p className="section-subtitle">Book your bus ticket in three simple steps</p>
+        </div>
+
+        <div className="premium-steps-container">
+          <div className="premium-step">
+            <div className="step-number">1</div>
+            <div className="step-content">
+              <h3 className="step-title">Search Your Route</h3>
               <p className="step-description">
-                Enter your departure and destination locations in our intelligent search system to find optimal route options based on your schedule requirements.
+                Browse available buses on your desired route and date.
               </p>
             </div>
+          </div>
+          
+          <div className="premium-step-connector">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
+            </svg>
+          </div>
 
-            <div className="step-card">
-              <div className="step-number">2</div>
-              <h3 className="step-title">Choose Your Service</h3>
+          <div className="premium-step">
+            <div className="step-number">2</div>
+            <div className="step-content">
+              <h3 className="step-title">Choose Your Seat</h3>
               <p className="step-description">
-                Compare available services with detailed information on amenities, schedules, and pricing to select the option that best meets your needs.
+                Select your preferred seat type based on your eligibility and comfort needs.
               </p>
             </div>
+          </div>
+          
+          <div className="premium-step-connector">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
+            </svg>
+          </div>
 
-            <div className="step-card">
-              <div className="step-number">3</div>
-              <h3 className="step-title">Confirm & Pay</h3>
+          <div className="premium-step">
+            <div className="step-number">3</div>
+            <div className="step-content">
+              <h3 className="step-title">Secure Payment</h3>
               <p className="step-description">
-                Complete your reservation with our secure payment gateway, receiving instant confirmation and digital tickets for a paperless travel experience.
+                Complete your booking with our secure payment system and receive your e-ticket.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="cta-section">
-        <div className="cta-content">
-          <h2 className="cta-title">Ready for a Superior Travel Experience?</h2>
-          <p className="cta-description">
-            Join the thousands of satisfied clients who rely on our professional bus booking system for their transportation needs.
+      {/* Bus Types Showcase */}
+      <section className="premium-showcase-section">
+        <div className="section-header">
+          <h2 className="section-title">Our Fleet</h2>
+          <p className="section-subtitle">Choose from our variety of comfortable buses</p>
+        </div>
+
+        <div className="premium-bus-showcase">
+          <div className="premium-bus-card">
+            <div className="premium-bus-image-container">
+              <img src={busImages.regularBus} alt="Regular Bus" className="premium-bus-image" />
+            </div>
+            <div className="premium-bus-card-content">
+              <h3 className="premium-bus-type">Regular Buses</h3>
+              <p className="premium-bus-description">
+                Comfortable seating with essential amenities for everyday travel needs.
+              </p>
+            </div>
+          </div>
+
+          <div className="premium-bus-card">
+            <div className="premium-bus-image-container">
+              <img src={busImages.luxuryBus} alt="Luxury Bus" className="premium-bus-image" />
+            </div>
+            <div className="premium-bus-card-content">
+              <h3 className="premium-bus-type">Luxury Buses</h3>
+              <p className="premium-bus-description">
+                Premium experience with extra legroom, entertainment systems, and refreshments.
+              </p>
+            </div>
+          </div>
+
+          <div className="premium-bus-card">
+            <div className="premium-bus-image-container">
+              <img src={busImages.sleeperBus} alt="Sleeper Bus" className="premium-bus-image" />
+            </div>
+            <div className="premium-bus-card-content">
+              <h3 className="premium-bus-type">Sleeper Buses</h3>
+              <p className="premium-bus-description">
+                Comfortable berths for overnight journeys, ensuring you arrive well-rested.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="premium-cta-section">
+        <div className="premium-cta-content">
+          <h2 className="premium-cta-title">Ready to Book Your Journey?</h2>
+          <p className="premium-cta-description">
+            Join thousands of satisfied travelers who choose our premium bus booking service.
           </p>
-          <Link to="/signup" className="cta-button">
-            Register Your Account
+          <Link to="/buses" className="premium-btn premium-btn-primary premium-cta-btn">
+            Book Now
           </Link>
         </div>
       </section>

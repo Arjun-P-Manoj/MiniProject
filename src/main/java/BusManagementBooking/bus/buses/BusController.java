@@ -1,5 +1,7 @@
 package BusManagementBooking.bus.buses;
 
+import BusManagementBooking.bus.config.SeatInitializationConfig;
+import BusManagementBooking.bus.seats.SeatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,9 @@ public class BusController {
 
     @Autowired
     private BusServiceImpl busServiceImpl;
+    
+    @Autowired
+    private SeatInitializationConfig seatInitConfig;
 
     @GetMapping("health")
     public String checkAlive() {
@@ -19,9 +24,20 @@ public class BusController {
     }
 
     @PostMapping
-    public String addBus(@RequestBody BusAddRequestDTO busAddRequestDTO) {
-        busServiceImpl.addBus(busAddRequestDTO);
-        return "Bus added successfully!";
+    public ResponseEntity<Bus> addBus(@RequestBody BusAddRequestDTO busAddRequestDTO) {
+        Bus savedBus = busServiceImpl.addBus(busAddRequestDTO);
+        
+        // Initialize seats for the new bus
+        seatInitConfig.initializeSeatsIfNeeded(savedBus);
+        
+        return ResponseEntity.ok(savedBus);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Bus> getBusById(@PathVariable Long id) {
+        return busServiceImpl.getBusById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping

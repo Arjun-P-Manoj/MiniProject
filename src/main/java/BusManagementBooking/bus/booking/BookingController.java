@@ -47,8 +47,8 @@ public class BookingController {
                 return ResponseEntity.badRequest().body("Bus with ID " + bookingAddRequestDTO.getBusId() + " does not exist");
             }
             
-            bookingServiceImpl.addBooking(bookingAddRequestDTO);
-            return ResponseEntity.ok("Booking added successfully!");
+            Booking booking = bookingServiceImpl.addBooking(bookingAddRequestDTO);
+            return ResponseEntity.ok(booking);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -65,5 +65,21 @@ public class BookingController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Booking>> getBookingsByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(bookingServiceImpl.getBookingsByUserId(userId));
+    }
+    
+    @PutMapping("/{bookingId}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
+        try {
+            boolean cancelled = bookingServiceImpl.cancelBooking(bookingId);
+            if (cancelled) {
+                return ResponseEntity.ok("Booking cancelled successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Booking with ID " + bookingId + " not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while cancelling the booking: " + e.getMessage());
+        }
     }
 }

@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Navbar = () => {
+const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -20,36 +25,22 @@ const Navbar = () => {
     return location.pathname === path ? 'active' : '';
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    setIsMenuOpen(false);
-  };
-
   return (
     <nav className="premium-navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo" onClick={closeMenu}>
           <svg className="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 17h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
-            <path d="M1 6v2"></path>
-            <path d="M23 6v2"></path>
-            <path d="M1 16v2"></path>
-            <path d="M23 16v2"></path>
-            <path d="M8 20v-4"></path>
-            <path d="M16 20v-4"></path>
-            <path d="M4 9h16"></path>
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+            <path d="M2 8h20"></path>
           </svg>
           <span className="logo-text">BusBooking</span>
         </Link>
 
         <div className="navbar-mobile-toggle" onClick={toggleMenu}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="menu-icon">
-            {isMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </div>
 
@@ -102,7 +93,7 @@ const Navbar = () => {
                 <Link to="/login" className="login-btn" onClick={closeMenu}>
                   Login
                 </Link>
-                <Link to="/signup" className="register-btn" onClick={closeMenu}>
+                <Link to="/register" className="register-btn" onClick={closeMenu}>
                   Register
                 </Link>
               </div>
@@ -114,4 +105,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navigation; 

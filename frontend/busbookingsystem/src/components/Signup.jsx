@@ -10,16 +10,17 @@ const Signup = () => {
     age: '',
     gender: '',
     role: 'USER', // Default role
-    password: ''
+    password: '',
+    isPregnant: false
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -32,7 +33,9 @@ const Signup = () => {
       // Convert age to integer
       const userData = {
         ...formData,
-        age: parseInt(formData.age)
+        age: parseInt(formData.age),
+        // Only include isPregnant if the user is female
+        isPregnant: formData.gender === 'FEMALE' ? formData.isPregnant : false
       };
       
       await addUser(userData);
@@ -122,6 +125,24 @@ const Signup = () => {
               <option value="OTHER">Other</option>
             </select>
           </div>
+
+          {formData.gender === 'FEMALE' && (
+            <div className="form-group">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isPregnant"
+                  name="isPregnant"
+                  checked={formData.isPregnant}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <label htmlFor="isPregnant" className="form-label">
+                  I am pregnant (for priority seating)
+                </label>
+              </div>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>

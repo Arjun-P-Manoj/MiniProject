@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BusServiceImpl implements BusService {
@@ -12,7 +13,7 @@ public class BusServiceImpl implements BusService {
     private BusRepository busRepository;
 
     @Override
-    public void addBus(BusAddRequestDTO busAddRequestDTO) {
+    public Bus addBus(BusAddRequestDTO busAddRequestDTO) {
         Bus bus = new Bus(
                 busAddRequestDTO.getName(),
                 busAddRequestDTO.getRoute(),
@@ -22,12 +23,17 @@ public class BusServiceImpl implements BusService {
                 busAddRequestDTO.getTotalSeats(),
                 new BigDecimal(busAddRequestDTO.getPrice())
         );
-        busRepository.save(bus);
+        return busRepository.save(bus);
     }
 
     @Override
     public List<Bus> getBuses() {
         return busRepository.findAll();
+    }
+    
+    @Override
+    public Optional<Bus> getBusById(Long busId) {
+        return busRepository.findById(busId);
     }
     
     @Override

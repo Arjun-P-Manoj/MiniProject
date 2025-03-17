@@ -39,6 +39,19 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
     
+    @GetMapping("/{userId}/priority")
+    public ResponseEntity<?> getUserPriorityInfo(@PathVariable Long userId) {
+        Optional<User> userOptional = userService.getUserById(userId);
+        
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            UserPriorityInfoDTO priorityInfo = new UserPriorityInfoDTO(user);
+            return ResponseEntity.ok(priorityInfo);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
         try {

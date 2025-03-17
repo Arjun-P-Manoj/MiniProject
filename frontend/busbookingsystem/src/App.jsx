@@ -13,6 +13,7 @@ import Signup from './components/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './styles/global.css';
+import './styles/forms.css';
 
 function App() {
   return (

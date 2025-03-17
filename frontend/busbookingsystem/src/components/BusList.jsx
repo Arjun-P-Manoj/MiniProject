@@ -1,200 +1,248 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getBuses, searchBuses } from '../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { getBuses, deleteBus } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import busImages from '../assets/busImages';
 
 const BusList = () => {
   const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  const [searchParams, setSearchParams] = useState({
-    name: '',
-    route: ''
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCriteria, setFilterCriteria] = useState({
+    route: '',
+    minPrice: '',
+    maxPrice: '',
   });
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const fetchBuses = async () => {
+    try {
+      setLoading(true);
+      const response = await getBuses();
+      setBuses(response.data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch buses. Please try again.');
+      console.error('Error fetching buses:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchBuses();
   }, []);
 
-  const fetchBuses = async () => {
-    try {
-      const response = await getBuses();
-      console.log('Buses data:', response.data);
-      setBuses(response.data);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching buses:', err);
-      setError('Failed to fetch buses');
-      setLoading(false);
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this bus?')) {
+      try {
+        await deleteBus(id);
+        setBuses(buses.filter(bus => bus.id !== id));
+      } catch (err) {
+        setError('Failed to delete bus. Please try again.');
+        console.error('Error deleting bus:', err);
+      }
     }
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      // Always perform search even if fields are empty
-      const params = { ...searchParams };
-      
-      const response = await searchBuses(params);
-      setBuses(response.data);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error searching buses:', err);
-      setError('Failed to search buses');
-      setLoading(false);
-    }
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
-  const handleSearchInputChange = (e) => {
+  const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setSearchParams({
-      ...searchParams,
-      [name]: value
+    setFilterCriteria({
+      ...filterCriteria,
+      [name]: value,
     });
   };
 
-  const clearSearch = () => {
-    setSearchParams({
-      name: '',
-      route: ''
+  const resetFilters = () => {
+    setSearchTerm('');
+    setFilterCriteria({
+      route: '',
+      minPrice: '',
+      maxPrice: '',
     });
-    fetchBuses();
   };
 
-  const handleBookNow = (busId) => {
-    navigate(`/bookings/add?busId=${busId}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container">
-        <div className="error-message">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {error}
-        </div>
-      </div>
-    );
-  }
+  // Filter buses based on search and filter criteria
+  const filteredBuses = buses.filter(bus => {
+    // Search filter (case insensitive)
+    const matchesSearch = 
+      bus.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bus.route.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Route filter
+    const matchesRoute = !filterCriteria.route || 
+      bus.route.toLowerCase().includes(filterCriteria.route.toLowerCase());
+    
+    // Price range filter
+    const matchesMinPrice = !filterCriteria.minPrice || 
+      bus.price >= Number(filterCriteria.minPrice);
+    
+    const matchesMaxPrice = !filterCriteria.maxPrice || 
+      bus.price <= Number(filterCriteria.maxPrice);
+    
+    return matchesSearch && matchesRoute && matchesMinPrice && matchesMaxPrice;
+  });
 
   return (
     <div className="container">
       <div className="page-header">
         <h1 className="page-title">Available Buses</h1>
-        {currentUser && currentUser.role === 'ADMIN' && (
-          <button className="btn btn-primary" onClick={() => navigate('/buses/add')}>
+        {currentUser?.role === 'ADMIN' && (
+          <Link to="/buses/add" className="premium-btn premium-btn-primary">
             Add New Bus
-          </button>
+          </Link>
         )}
       </div>
-      
-      <div className="card mb-4">
-        <h2 className="text-lg font-semibold mb-4">Search Buses</h2>
-        <form onSubmit={handleSearch} className="search-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="name">Bus Name</label>
+
+      {error && (
+        <div className="premium-alert premium-alert-error">
+          <svg className="premium-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {error}
+        </div>
+      )}
+
+      <div className="premium-card search-filter-container">
+        <div className="premium-form-group">
+          <label className="premium-label">Search Buses</label>
+          <input
+            type="text"
+            placeholder="Search by bus name or route"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="premium-input"
+          />
+        </div>
+        
+        <div className="filters-section">
+          <h3 className="filter-title">Filters</h3>
+          <div className="filters-grid">
+            <div className="premium-form-group">
+              <label className="premium-label">Route</label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                className="form-input"
-                placeholder="e.g. Express Volvo"
-                value={searchParams.name}
-                onChange={handleSearchInputChange}
+                name="route"
+                placeholder="Filter by route"
+                value={filterCriteria.route}
+                onChange={handleFilterChange}
+                className="premium-input"
               />
             </div>
-            
-            <div className="form-group">
-              <label className="form-label" htmlFor="route">Route</label>
+            <div className="premium-form-group">
+              <label className="premium-label">Min Price (₹)</label>
               <input
-                type="text"
-                id="route"
-                name="route"
-                className="form-input"
-                placeholder="e.g. Mumbai to Delhi"
-                value={searchParams.route}
-                onChange={handleSearchInputChange}
+                type="number"
+                name="minPrice"
+                placeholder="Min price"
+                value={filterCriteria.minPrice}
+                onChange={handleFilterChange}
+                className="premium-input"
+              />
+            </div>
+            <div className="premium-form-group">
+              <label className="premium-label">Max Price (₹)</label>
+              <input
+                type="number"
+                name="maxPrice"
+                placeholder="Max price"
+                value={filterCriteria.maxPrice}
+                onChange={handleFilterChange}
+                className="premium-input"
               />
             </div>
           </div>
           
-          <div className="form-buttons">
-            <button type="submit" className="btn btn-primary">
-              Search
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={clearSearch}>
-              Clear
-            </button>
-          </div>
-        </form>
+          <button 
+            onClick={resetFilters} 
+            className="premium-btn premium-btn-secondary"
+          >
+            Reset Filters
+          </button>
+        </div>
       </div>
 
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Bus Name</th>
-              <th>Route</th>
-              <th>Departure Time</th>
-              <th>Arrival Time</th>
-              <th>Available Seats</th>
-              <th>Total Seats</th>
-              <th>Price</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {buses.length > 0 ? (
-              buses.map((bus) => (
-                <tr key={bus.id}>
-                  <td>{bus.name}</td>
-                  <td>{bus.route}</td>
-                  <td>{bus.departureTime}</td>
-                  <td>{bus.arrivalTime}</td>
-                  <td>{bus.availableSeats}</td>
-                  <td>{bus.totalSeats}</td>
-                  <td>₹{bus.price}</td>
-                  <td>
-                    {currentUser ? (
-                      <button
-                        className="btn btn-success"
-                        onClick={() => handleBookNow(bus.id)}
-                      >
-                        Book Now
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn-success"
-                        onClick={() => navigate('/login')}
-                      >
-                        Login to Book
-                      </button>
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-spinner-large"></div>
+          <p>Loading buses...</p>
+        </div>
+      ) : filteredBuses.length > 0 ? (
+        <div className="bus-grid">
+          {filteredBuses.map(bus => {
+            const busImage = busImages.getBusImage(bus);
+            return (
+              <div key={bus.id} className="bus-card">
+                <div className="bus-image-container">
+                  <img src={busImage} alt={bus.name} className="bus-image" />
+                </div>
+                <div className="bus-card-content">
+                  <h2 className="bus-card-title">{bus.name}</h2>
+                  <p className="bus-route">{bus.route}</p>
+                  
+                  <div className="bus-info-grid">
+                    <div className="bus-info-item">
+                      <span className="bus-info-label">Departure:</span>
+                      <span className="bus-info-value">{bus.departureTime}</span>
+                    </div>
+                    <div className="bus-info-item">
+                      <span className="bus-info-label">Arrival:</span>
+                      <span className="bus-info-value">{bus.arrivalTime}</span>
+                    </div>
+                    <div className="bus-info-item">
+                      <span className="bus-info-label">Seats:</span>
+                      <span className="bus-info-value">{bus.availableSeats} available</span>
+                    </div>
+                    <div className="bus-info-item">
+                      <span className="bus-info-label">Price:</span>
+                      <span className="bus-info-value price">₹{bus.price}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bus-card-actions">
+                    <button 
+                      className="premium-btn premium-btn-primary"
+                      onClick={() => navigate(`/bookings/add?busId=${bus.id}`)}
+                    >
+                      Book Now
+                    </button>
+                    
+                    {currentUser?.role === 'ADMIN' && (
+                      <div className="admin-actions">
+                        <Link to={`/buses/edit/${bus.id}`} className="premium-btn premium-btn-secondary">
+                          Edit
+                        </Link>
+                        <button 
+                          onClick={() => handleDelete(bus.id)} 
+                          className="premium-btn premium-btn-danger"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="text-center">No buses found</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="no-results">
+          <svg className="no-results-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <p className="no-results-text">No buses found matching your criteria.</p>
+          <button onClick={resetFilters} className="premium-btn premium-btn-primary">
+            Reset Filters
+          </button>
+        </div>
+      )}
     </div>
   );
 };

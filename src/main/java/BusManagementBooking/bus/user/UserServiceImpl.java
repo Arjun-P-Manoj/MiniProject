@@ -23,7 +23,8 @@ public class UserServiceImpl implements UserService {
                 userAddRequestDTO.getAge(),
                 userAddRequestDTO.getGender(),
                 userAddRequestDTO.getRole(),
-                userAddRequestDTO.getPassword()
+                userAddRequestDTO.getPassword(),
+                userAddRequestDTO.getIsPregnant()
         );
         System.out.println("User: " + user);
         userRepository.save(user);
@@ -38,6 +39,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+    
+    @Override
+    public Optional<User> getUserById(Long userId) {
+        return userRepository.findById(userId);
     }
     
     @Override

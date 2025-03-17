@@ -27,17 +27,31 @@ public class User {
 
     @Column(name = "password", nullable = false, length = 100)
     private String password;
+    
+    @Column(name = "is_pregnant")
+    private Boolean isPregnant;
 
     // Constructors
     public User() {}
 
-    public User(String name, String email, Integer age, String gender, String role, String password) {
+    public User(String name, String email, Integer age, String gender, String role, String password, Boolean isPregnant) {
         this.name = name;
         this.email = email;
         this.age = age;
         this.gender = gender;
         this.role = role;
         this.password = password;
+        this.isPregnant = isPregnant;
+    }
+
+    // Helper method to determine if user is eligible for elder priority
+    public boolean isElderlyPriorityEligible() {
+        return age != null && age >= 60;
+    }
+    
+    // Helper method to determine if user is eligible for pregnant priority
+    public boolean isPregnantPriorityEligible() {
+        return isPregnant != null && isPregnant && "FEMALE".equalsIgnoreCase(gender);
     }
 
     // Getters and Setters
@@ -95,5 +109,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    public Boolean getIsPregnant() {
+        return isPregnant;
+    }
+    
+    public void setIsPregnant(Boolean isPregnant) {
+        this.isPregnant = isPregnant;
     }
 }
