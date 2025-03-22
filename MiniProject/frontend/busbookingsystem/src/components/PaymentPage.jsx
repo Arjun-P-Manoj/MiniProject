@@ -11,6 +11,7 @@ const PaymentPage = () => {
   const bookingData = location.state?.bookingData;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   if (!bookingData) {
     navigate('/buses');
@@ -30,8 +31,13 @@ const PaymentPage = () => {
 
       await addBooking(bookingPayload);
       
-      // Navigate to bookings page after successful booking
-      navigate('/bookings');
+      // Show success popup
+      setShowSuccess(true);
+      
+      // Navigate to bookings page after 2 seconds
+      setTimeout(() => {
+        navigate('/bookings');
+      }, 2000);
     } catch (err) {
       console.error('Error creating booking:', err);
       setError('Failed to confirm payment. Please try again.');
@@ -44,6 +50,19 @@ const PaymentPage = () => {
 
   return (
     <div className="container">
+      {showSuccess && (
+        <>
+          <div className="success-popup-overlay" />
+          <div className="success-popup">
+            <svg className="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <h2 className="success-title">Booking Successful!</h2>
+            <p className="success-message">Your ticket has been booked successfully</p>
+          </div>
+        </>
+      )}
+
       <div className="page-header">
         <h1 className="page-title">Payment Details</h1>
       </div>

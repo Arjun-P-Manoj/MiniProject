@@ -57,11 +57,18 @@ const Navigation = () => {
               </Link>
             </li>
             {currentUser && (
-              <li className="nav-item">
-                <Link to="/bookings" className={`nav-link ${isActive('/bookings')}`} onClick={closeMenu}>
-                  My Bookings
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link to="/bookings" className={`nav-link ${isActive('/bookings')}`} onClick={closeMenu}>
+                    My Bookings
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/transfer-seat" className={`nav-link ${isActive('/transfer-seat')}`} onClick={closeMenu}>
+                    Transfer Seat
+                  </Link>
+                </li>
+              </>
             )}
             {currentUser?.role === 'ADMIN' && (
               <li className="nav-item">
