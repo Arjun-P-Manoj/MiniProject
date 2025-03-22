@@ -177,17 +177,15 @@ const AddBooking = () => {
       const bookingData = {
         ...formData,
         userId: parseInt(formData.userId),
-        busId: parseInt(formData.busId)
-        // Keep seatNumber as a string since that's what the backend expects
-        // amount is already a number since it's set from bus.price
+        busId: parseInt(formData.busId),
+        bus: selectedBus // Include the selected bus data for the payment page
       };
       
-      console.log('Sending booking data:', bookingData);
-      await addBooking(bookingData);
-      navigate('/bookings');
+      // Navigate to payment page with booking data
+      navigate('/payment', { state: { bookingData } });
     } catch (err) {
-      console.error('Error adding booking:', err.response?.data || err.message);
-      setError(err.response?.data || 'Failed to add booking');
+      console.error('Error preparing booking:', err);
+      setError('Failed to prepare booking');
       setLoading(false);
     }
   };

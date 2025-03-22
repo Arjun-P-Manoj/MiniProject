@@ -104,6 +104,16 @@ const BookingList = () => {
     }
   };
 
+  const statusFilterButtons = [
+    { label: 'All', value: 'all' },
+    { label: 'Confirmed', value: 'CONFIRMED' },
+    { label: 'Cancelled', value: 'CANCELLED' }
+  ];
+
+  const handleFilterChange = (value) => {
+    setStatusFilter(value);
+  };
+
   return (
     <div className="container">
       <div className="page-header">
@@ -129,36 +139,15 @@ const BookingList = () => {
         <div className="filter-controls">
           <h3 className="filter-title">Filter by Status</h3>
           <div className="status-filter-buttons">
-            <button
-              className={`status-filter-btn ${statusFilter === '' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('')}
-            >
-              All
-            </button>
-            <button
-              className={`status-filter-btn status-filter-pending ${statusFilter === 'PENDING' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('PENDING')}
-            >
-              Pending
-            </button>
-            <button
-              className={`status-filter-btn status-filter-confirmed ${statusFilter === 'CONFIRMED' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('CONFIRMED')}
-            >
-              Confirmed
-            </button>
-            <button
-              className={`status-filter-btn status-filter-completed ${statusFilter === 'COMPLETED' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('COMPLETED')}
-            >
-              Completed
-            </button>
-            <button
-              className={`status-filter-btn status-filter-cancelled ${statusFilter === 'CANCELLED' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('CANCELLED')}
-            >
-              Cancelled
-            </button>
+            {statusFilterButtons.map((button) => (
+              <button
+                key={button.value}
+                className={`status-filter-btn ${statusFilter === button.value ? 'active' : ''} status-filter-${button.value.toLowerCase()}`}
+                onClick={() => handleFilterChange(button.value)}
+              >
+                {button.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -270,7 +259,7 @@ const BookingList = () => {
                     </div>
                   </div>
                   
-                  {booking.status === 'PENDING' && (
+                  {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                     <div className="booking-card-actions">
                       <button
                         className="premium-btn premium-btn-danger"
