@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { addBooking, getBuses, getUsers, getSeats, getSeatCounts, getUserPriorityInfo, getAvailableSeatsByType } from '../services/api';
+import { addBooking, getBuses, getUsers, getSeats, getSeatCounts } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import busImages from '../assets/busImages';
 import SeatLayout from './SeatLayout';
@@ -15,8 +15,8 @@ const AddBooking = () => {
   const [formData, setFormData] = useState({
     userId: currentUser?.id || '',
     busId: busIdFromUrl || '',
-    bookingDate: new Date().toISOString().slice(0, 16), // Default to current date/time
-    seatNumber: '',
+    bookingDate: new Date().toISOString().slice(0, 16),
+    seatNumbers: [],
     amount: '',
     status: 'PENDING'
   });
@@ -24,12 +24,8 @@ const AddBooking = () => {
   const [users, setUsers] = useState([]);
   const [selectedBus, setSelectedBus] = useState(null);
   const [availableSeats, setAvailableSeats] = useState([]);
-  const [seatCounts, setSeatCounts] = useState({ REGULAR: 0, ELDER: 0, PREGNANT: 0 });
-  const [selectedSeatType, setSelectedSeatType] = useState('REGULAR');
-  const [userPriority, setUserPriority] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [priorityMessage, setPriorityMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,11 +36,6 @@ const AddBooking = () => {
         ]);
         setBuses(busesResponse.data);
         setUsers(usersResponse.data);
-        
-        // If the current user exists, fetch their priority information
-        if (currentUser?.id) {
-          fetchUserPriorityInfo(currentUser.id);
-        }
         
         // If busId was provided, find the selected bus to display info
         if (busIdFromUrl) {
@@ -67,29 +58,7 @@ const AddBooking = () => {
       }
     };
     fetchData();
-  }, [busIdFromUrl, currentUser]);
-
-  const fetchUserPriorityInfo = async (userId) => {
-    try {
-      const response = await getUserPriorityInfo(userId);
-      const priorityInfo = response.data;
-      setUserPriority(priorityInfo);
-      
-      // Automatically select the recommended seat type
-      if (priorityInfo.recommendedSeatType) {
-        setSelectedSeatType(priorityInfo.recommendedSeatType);
-        
-        // Set priority message based on eligibility
-        if (priorityInfo.pregnantPriorityEligible) {
-          setPriorityMessage('You are eligible for pregnant priority seating.');
-        } else if (priorityInfo.elderlyPriorityEligible) {
-          setPriorityMessage('You are eligible for elderly priority seating.');
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching user priority info:', err);
-    }
-  };
+  }, [busIdFromUrl]);
 
   const fetchSeatsForBus = async (busId) => {
     try {
@@ -100,7 +69,6 @@ const AddBooking = () => {
       ]);
       
       setAvailableSeats(seatsResponse.data);
-      setSeatCounts(countsResponse.data);
     } catch (err) {
       console.error('Error fetching seats:', err);
       setError('Failed to load seat information');
@@ -123,35 +91,27 @@ const AddBooking = () => {
         setFormData(prev => ({
           ...prev,
           amount: selectedBus.price,
-          seatNumber: '' // Reset seat number when bus changes
+          seatNumbers: [] // Reset seat numbers when bus changes
         }));
         
         // Fetch available seats for the new bus
         fetchSeatsForBus(busId);
       }
     }
-    
-    // When user selection changes (for admin)
-    if (name === 'userId' && currentUser?.role === 'ADMIN') {
-      const userId = parseInt(value);
-      if (userId) {
-        fetchUserPriorityInfo(userId);
-      }
-    }
   };
 
-  const handleSeatTypeChange = (e) => {
-    const newSeatType = e.target.value;
-    setSelectedSeatType(newSeatType);
-    setFormData(prev => ({
-      ...prev,
-      seatNumber: '' // Reset seat number when seat type changes
-    }));
-    
-    // Fetch available seats for the new seat type
-    if (formData.busId) {
-      fetchSeatsForBus(formData.busId);
-    }
+  const handleSeatSelect = (seatNumber) => {
+    setFormData(prev => {
+      const newSeatNumbers = prev.seatNumbers.includes(seatNumber)
+        ? prev.seatNumbers.filter(num => num !== seatNumber)
+        : [...prev.seatNumbers, seatNumber];
+      
+      return {
+        ...prev,
+        seatNumbers: newSeatNumbers,
+        amount: selectedBus ? selectedBus.price * newSeatNumbers.length : prev.amount
+      };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -160,40 +120,32 @@ const AddBooking = () => {
     setError(null);
 
     try {
-      // Check if the user is eligible for the selected seat type
-      if (selectedSeatType === 'PREGNANT' && userPriority && !userPriority.pregnantPriorityEligible) {
-        setError('You are not eligible for pregnant priority seating. Please select a different seat type.');
+      if (formData.seatNumbers.length === 0) {
+        setError('Please select at least one seat');
         setLoading(false);
         return;
       }
-      
-      if (selectedSeatType === 'ELDER' && userPriority && !userPriority.elderlyPriorityEligible) {
-        setError('You are not eligible for elderly priority seating. Please select a different seat type.');
-        setLoading(false);
-        return;
-      }
-      
-      // Convert numeric fields to numbers
+
+      // Prepare booking data for each selected seat
       const bookingData = {
-        ...formData,
         userId: parseInt(formData.userId),
         busId: parseInt(formData.busId),
-        bus: selectedBus // Include the selected bus data for the payment page
+        bookingDate: formData.bookingDate,
+        amount: formData.amount,
+        status: 'PENDING',
+        bus: selectedBus,
+        seatNumbers: formData.seatNumbers
       };
-      
-      // Navigate to payment page with booking data
+
+      // Navigate directly to payment page
       navigate('/payment', { state: { bookingData } });
+
     } catch (err) {
       console.error('Error preparing booking:', err);
       setError('Failed to prepare booking');
       setLoading(false);
     }
   };
-
-  // Filter seats based on selected seat type
-  const filteredSeats = availableSeats.filter(seat => 
-    seat.seatType === selectedSeatType && seat.status === 'AVAILABLE'
-  );
 
   // Get the appropriate bus image
   const busImage = selectedBus ? busImages.getBusImage(selectedBus) : busImages.default;
@@ -210,15 +162,6 @@ const AddBooking = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           {error}
-        </div>
-      )}
-      
-      {priorityMessage && (
-        <div className="premium-alert premium-alert-success">
-          <svg className="premium-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {priorityMessage}
         </div>
       )}
 
@@ -251,26 +194,9 @@ const AddBooking = () => {
               <div className="bus-detail-value">{selectedBus.availableSeats}</div>
             </div>
             <div className="bus-detail-row">
-              <div className="bus-detail-label">Price:</div>
+              <div className="bus-detail-label">Price per Seat:</div>
               <div className="bus-detail-value">₹{selectedBus.price}</div>
             </div>
-            
-            {Object.keys(seatCounts).length > 0 && (
-              <div className="seat-distribution">
-                <div className="seat-distribution-title">Seat Distribution:</div>
-                <div className="seat-list">
-                  <div className="seat-type-item seat-type-regular">
-                    Regular: {seatCounts.REGULAR || 0}
-                  </div>
-                  <div className="seat-type-item seat-type-elder">
-                    Elder-Priority: {seatCounts.ELDER || 0}
-                  </div>
-                  <div className="seat-type-item seat-type-pregnant">
-                    Pregnant-Priority: {seatCounts.PREGNANT || 0}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -336,75 +262,25 @@ const AddBooking = () => {
             />
           </div>
 
-          {formData.busId && (
-            <>
-              <div className="premium-form-group">
-                <label className="premium-label">Seat Type</label>
-                <div className="premium-radio-group">
-                  <label className={`premium-radio-label ${selectedSeatType === 'REGULAR' ? 'selected' : ''}`}>
-                    <input
-                      type="radio"
-                      name="seatType"
-                      value="REGULAR"
-                      checked={selectedSeatType === 'REGULAR'}
-                      onChange={handleSeatTypeChange}
-                      className="mr-2"
-                    />
-                    Regular
-                  </label>
-                  <label className={`premium-radio-label ${selectedSeatType === 'ELDER' ? 'selected' : ''} ${userPriority && !userPriority.elderlyPriorityEligible ? 'disabled' : ''}`}>
-                    <input
-                      type="radio"
-                      name="seatType"
-                      value="ELDER"
-                      checked={selectedSeatType === 'ELDER'}
-                      onChange={handleSeatTypeChange}
-                      className="mr-2"
-                      disabled={userPriority && !userPriority.elderlyPriorityEligible && currentUser.role !== 'ADMIN'}
-                    />
-                    Elder Priority
-                    {userPriority && !userPriority.elderlyPriorityEligible && (
-                      <span className="text-xs text-red-500 ml-1">(Not eligible)</span>
-                    )}
-                  </label>
-                  <label className={`premium-radio-label ${selectedSeatType === 'PREGNANT' ? 'selected' : ''} ${userPriority && !userPriority.pregnantPriorityEligible ? 'disabled' : ''}`}>
-                    <input
-                      type="radio"
-                      name="seatType"
-                      value="PREGNANT"
-                      checked={selectedSeatType === 'PREGNANT'}
-                      onChange={handleSeatTypeChange}
-                      className="mr-2"
-                      disabled={userPriority && !userPriority.pregnantPriorityEligible && currentUser.role !== 'ADMIN'}
-                    />
-                    Pregnant Priority
-                    {userPriority && !userPriority.pregnantPriorityEligible && (
-                      <span className="text-xs text-red-500 ml-1">(Not eligible)</span>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              <div className="premium-form-group">
-                <label className="premium-label">Select Seat</label>
-                <SeatLayout
-                  availableSeats={availableSeats}
-                  selectedSeatNumber={formData.seatNumber}
-                  onSeatSelect={(seatNumber) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      seatNumber
-                    }));
-                  }}
-                  selectedSeatType={selectedSeatType}
-                  totalSeats={selectedBus?.totalSeats || 40}
-                />
-              </div>
-            </>
+          {selectedBus && (
+            <div className="premium-form-group">
+              <label className="premium-label">Select Seats</label>
+              <SeatLayout
+                availableSeats={availableSeats}
+                selectedSeatNumbers={formData.seatNumbers}
+                onSeatSelect={handleSeatSelect}
+                totalSeats={selectedBus?.totalSeats || 40}
+              />
+              {formData.seatNumbers.length > 0 && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Selected {formData.seatNumbers.length} seat(s)
+                </p>
+              )}
+            </div>
           )}
 
           <div className="premium-form-group">
-            <label className="premium-label" htmlFor="amount">Amount (₹)</label>
+            <label className="premium-label" htmlFor="amount">Total Amount (₹)</label>
             <input
               type="number"
               id="amount"
@@ -431,7 +307,7 @@ const AddBooking = () => {
             <button
               type="submit"
               className="premium-btn premium-btn-primary"
-              disabled={loading || !formData.seatNumber}
+              disabled={loading || formData.seatNumbers.length === 0}
             >
               {loading ? (
                 <>

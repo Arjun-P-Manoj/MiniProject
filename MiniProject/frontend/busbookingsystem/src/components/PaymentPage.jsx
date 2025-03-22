@@ -12,24 +12,91 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [passengerDetails, setPassengerDetails] = useState([]);
 
   if (!bookingData) {
     navigate('/buses');
     return null;
   }
 
+  // Initialize passenger details when component mounts
+  React.useEffect(() => {
+    if (bookingData.seatNumbers.length > 1) {
+      // Initialize passenger details for each seat (excluding the first seat which is for the current user)
+      const initialPassengerDetails = bookingData.seatNumbers.slice(1).map(seatNumber => ({
+        seatNumber,
+        name: '',
+        age: '',
+        phoneNumber: '',
+        address: ''
+      }));
+      setPassengerDetails(initialPassengerDetails);
+    }
+  }, [bookingData.seatNumbers]);
+
+  const handlePassengerDetailChange = (index, field, value) => {
+    setPassengerDetails(prev => {
+      const newDetails = [...prev];
+      newDetails[index] = {
+        ...newDetails[index],
+        [field]: value
+      };
+      return newDetails;
+    });
+  };
+
+  const validatePassengerDetails = () => {
+    if (bookingData.seatNumbers.length <= 1) return true;
+    
+    return passengerDetails.every(detail => 
+      detail.name.trim() !== '' &&
+      detail.age.trim() !== '' &&
+      detail.phoneNumber.trim() !== '' &&
+      detail.address.trim() !== ''
+    );
+  };
+
   const handleConfirmPayment = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Create the booking with CONFIRMED status
-      const bookingPayload = {
-        ...bookingData,
-        status: 'CONFIRMED'
-      };
+      if (bookingData.seatNumbers.length > 1 && !validatePassengerDetails()) {
+        setError('Please fill in all passenger details');
+        setLoading(false);
+        return;
+      }
 
-      await addBooking(bookingPayload);
+      // Create bookings for each selected seat
+      for (let i = 0; i < bookingData.seatNumbers.length; i++) {
+        const seatNumber = bookingData.seatNumbers[i];
+        const bookingPayload = {
+          userId: bookingData.userId,
+          busId: bookingData.busId,
+          bookingDate: bookingData.bookingDate,
+          seatNumber: seatNumber,
+          amount: bookingData.bus.price, // Price per seat
+          status: 'CONFIRMED'
+        };
+
+        // Add passenger details if it's not the first seat
+        if (i > 0) {
+          const passengerDetail = passengerDetails[i - 1];
+          bookingPayload.passengerDetails = {
+            name: passengerDetail.name,
+            age: passengerDetail.age,
+            phoneNumber: passengerDetail.phoneNumber,
+            address: passengerDetail.address
+          };
+        }
+        
+        try {
+          await addBooking(bookingPayload);
+        } catch (err) {
+          console.error(`Error creating booking for seat ${seatNumber}:`, err);
+          throw new Error(`Failed to book seat ${seatNumber}. Please try again.`);
+        }
+      }
       
       // Show success popup
       setShowSuccess(true);
@@ -40,7 +107,7 @@ const PaymentPage = () => {
       }, 2000);
     } catch (err) {
       console.error('Error creating booking:', err);
-      setError('Failed to confirm payment. Please try again.');
+      setError(err.message || 'Failed to confirm payment. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -98,8 +165,8 @@ const PaymentPage = () => {
             </div>
 
             <div className="payment-detail-row">
-              <span className="payment-label">Seat Number:</span>
-              <span className="payment-value">{bookingData.seatNumber}</span>
+              <span className="payment-label">Seat Numbers:</span>
+              <span className="payment-value">{bookingData.seatNumbers.join(', ')}</span>
             </div>
 
             <div className="payment-detail-row">
@@ -121,6 +188,64 @@ const PaymentPage = () => {
               <span className="payment-value price">₹{bookingData.amount}</span>
             </div>
           </div>
+
+          {bookingData.seatNumbers.length > 1 && (
+            <div className="passenger-details-section">
+              <h3 className="section-title">Passenger Details</h3>
+              <p className="section-subtitle">Please fill in details for additional passengers</p>
+              
+              {passengerDetails.map((detail, index) => (
+                <div key={detail.seatNumber} className="passenger-form">
+                  <h4 className="passenger-title">Passenger for Seat {detail.seatNumber}</h4>
+                  <div className="passenger-form-grid">
+                    <div className="form-group">
+                      <label htmlFor={`name-${index}`}>Full Name</label>
+                      <input
+                        type="text"
+                        id={`name-${index}`}
+                        value={detail.name}
+                        onChange={(e) => handlePassengerDetailChange(index, 'name', e.target.value)}
+                        className="premium-input"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor={`age-${index}`}>Age</label>
+                      <input
+                        type="number"
+                        id={`age-${index}`}
+                        value={detail.age}
+                        onChange={(e) => handlePassengerDetailChange(index, 'age', e.target.value)}
+                        className="premium-input"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor={`phone-${index}`}>Phone Number</label>
+                      <input
+                        type="tel"
+                        id={`phone-${index}`}
+                        value={detail.phoneNumber}
+                        onChange={(e) => handlePassengerDetailChange(index, 'phoneNumber', e.target.value)}
+                        className="premium-input"
+                        required
+                      />
+                    </div>
+                    <div className="form-group full-width">
+                      <label htmlFor={`address-${index}`}>Address</label>
+                      <textarea
+                        id={`address-${index}`}
+                        value={detail.address}
+                        onChange={(e) => handlePassengerDetailChange(index, 'address', e.target.value)}
+                        className="premium-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="payment-actions">
             <button

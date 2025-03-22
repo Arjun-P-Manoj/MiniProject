@@ -2,18 +2,17 @@ import React from 'react';
 
 const SeatLayout = ({ 
   availableSeats, 
-  selectedSeatNumber, 
+  selectedSeatNumbers, 
   onSeatSelect, 
-  selectedSeatType,
   totalSeats = 40 // Default to 40 seats (4 rows x 10 seats)
 }) => {
   // Create an array of all seats based on the seats from backend
   const allSeats = availableSeats.map(seat => ({
     number: seat.seatNumber,
     isAvailable: seat.status === 'AVAILABLE',
-    isSelected: seat.seatNumber === selectedSeatNumber,
-    type: seat.seatType,
-    status: seat.status
+    isSelected: selectedSeatNumbers.includes(seat.seatNumber),
+    status: seat.status,
+    type: seat.seatType // Keep the seat type for visual distinction
   }));
 
   // Sort seats by seat number to ensure proper ordering
@@ -47,7 +46,7 @@ const SeatLayout = ({
         </div>
         <div className="seat-legend-item">
           <div className="seat-sample priority"></div>
-          <span>Priority</span>
+          <span>Priority (Elder/Pregnant)</span>
         </div>
       </div>
 
@@ -67,8 +66,8 @@ const SeatLayout = ({
                   seat.status === 'BOOKED' ? 'occupied' :
                   seat.type !== 'REGULAR' ? 'priority' :
                   'available'
-                } ${seat.isAvailable && selectedSeatType === seat.type ? 'selectable' : ''}`}
-                onClick={() => seat.isAvailable && selectedSeatType === seat.type && onSeatSelect(seat.number)}
+                } ${seat.isAvailable ? 'selectable' : ''}`}
+                onClick={() => seat.isAvailable && onSeatSelect(seat.number)}
                 title={`Seat ${seat.number} - ${seat.type} - ${seat.status}`}
               >
                 {seat.number}
