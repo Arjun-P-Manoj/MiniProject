@@ -11,7 +11,7 @@ import AddUser from './components/AddUser';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import PaymentPage from './components/PaymentPage';
-import TransferSeat from './components/TransferSeat';
+import TransferSeatPage from './components/TransferSeatPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './styles/global.css';
@@ -36,7 +36,7 @@ function App() {
                 <Route path="/bookings" element={<BookingList />} />
                 <Route path="/bookings/add" element={<AddBooking />} />
                 <Route path="/payment" element={<PaymentPage />} />
-                <Route path="/transfer-seat" element={<TransferSeat />} />
+                <Route path="/transfer-seat" element={<TransferSeatPage />} />
               </Route>
               
               {/* Protected routes for admins */}

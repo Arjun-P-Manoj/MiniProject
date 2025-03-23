@@ -219,4 +219,82 @@ public class BookingServiceImpl implements BookingService {
         
         return true;
     }
+
+    @Override
+    @Transactional
+    public void transferSeat(Long bookingId, Long newBusId, Long newSeatId) throws Exception {
+        logger.info("Starting seat transfer process for booking ID: {}, new bus ID: {}, new seat ID: {}", 
+            bookingId, newBusId, newSeatId);
+
+        // 1. Fetch existing booking
+        Booking oldBooking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new Exception("Booking not found with ID: " + bookingId));
+
+        // Validate booking status
+        if (!"CONFIRMED".equals(oldBooking.getStatus())) {
+            throw new Exception("Only confirmed bookings can be transferred");
+        }
+
+        // 2. Validate new seat availability
+        Seat newSeat = seatRepository.findById(newSeatId)
+                .orElseThrow(() -> new Exception("New seat not found with ID: " + newSeatId));
+
+        if (newSeat.getStatus() != Seat.SeatStatus.AVAILABLE) {
+            throw new Exception("Selected seat is not available");
+        }
+
+        // 3. Validate new bus
+        Bus newBus = busRepository.findById(newBusId)
+                .orElseThrow(() -> new Exception("New bus not found with ID: " + newBusId));
+
+        // 4. Mark old booking as cancelled
+        oldBooking.setStatus("CANCELLED");
+        bookingRepository.save(oldBooking);
+        logger.info("Old booking marked as cancelled");
+
+        // 5. Update old seat availability
+        List<Seat> oldSeats = seatRepository.findByBusId(oldBooking.getBusId());
+        Optional<Seat> oldSeatOpt = oldSeats.stream()
+                .filter(s -> s.getSeatNumber().equals(oldBooking.getSeatNumber()))
+                .findFirst();
+                
+        if (oldSeatOpt.isEmpty()) {
+            throw new Exception("Old seat not found");
+        }
+        
+        Seat oldSeat = oldSeatOpt.get();
+        oldSeat.setStatus(Seat.SeatStatus.AVAILABLE);
+        seatRepository.save(oldSeat);
+        logger.info("Old seat marked as available");
+
+        // 6. Update old bus available seats
+        Bus oldBus = busRepository.findById(oldBooking.getBusId())
+                .orElseThrow(() -> new Exception("Old bus not found"));
+        oldBus.setAvailableSeats(oldBus.getAvailableSeats() + 1);
+        busRepository.save(oldBus);
+        logger.info("Old bus available seats updated");
+
+        // 7. Create new booking
+        Booking newBooking = new Booking();
+        newBooking.setUserId(oldBooking.getUserId());
+        newBooking.setBusId(newBusId);
+        newBooking.setSeatNumber(newSeat.getSeatNumber());
+        newBooking.setBookingDate(oldBooking.getBookingDate());
+        newBooking.setStatus("CONFIRMED");
+        newBooking.setAmount(oldBooking.getAmount());
+        newBooking = bookingRepository.save(newBooking);
+        logger.info("New booking created with ID: {}", newBooking.getId());
+
+        // 8. Update new seat availability
+        newSeat.setStatus(Seat.SeatStatus.BOOKED);
+        seatRepository.save(newSeat);
+        logger.info("New seat marked as booked");
+
+        // 9. Update new bus available seats
+        newBus.setAvailableSeats(newBus.getAvailableSeats() - 1);
+        busRepository.save(newBus);
+        logger.info("New bus available seats updated");
+
+        logger.info("Seat transfer completed successfully");
+    }
 }

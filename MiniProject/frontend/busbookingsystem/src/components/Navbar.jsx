@@ -40,7 +40,7 @@ const Navbar = () => {
             <path d="M16 20v-4"></path>
             <path d="M4 9h16"></path>
           </svg>
-          <span className="logo-text">BusBooking</span>
+          <span className="logo-text">BusGo</span>
         </Link>
 
         <div className="navbar-mobile-toggle" onClick={toggleMenu}>
@@ -66,11 +66,18 @@ const Navbar = () => {
               </Link>
             </li>
             {currentUser && (
-              <li className="nav-item">
-                <Link to="/bookings" className={`nav-link ${isActive('/bookings')}`} onClick={closeMenu}>
-                  My Bookings
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link to="/bookings" className={`nav-link ${isActive('/bookings')}`} onClick={closeMenu}>
+                    My Bookings
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/transfer-seat" className={`nav-link ${isActive('/transfer-seat')}`} onClick={closeMenu}>
+                    Transfer Seat
+                  </Link>
+                </li>
+              </>
             )}
             {currentUser?.role === 'ADMIN' && (
               <li className="nav-item">

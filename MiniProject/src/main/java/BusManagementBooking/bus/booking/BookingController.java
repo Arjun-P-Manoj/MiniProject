@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("booking")
+@RequestMapping("/booking")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class BookingController {
 
@@ -19,7 +19,7 @@ public class BookingController {
     @Autowired
     private BusRepository busRepository;
 
-    @GetMapping("health")
+    @GetMapping("/health")
     public String checkAlive() {
         return "Booking Controller is alive!";
     }
@@ -80,6 +80,45 @@ public class BookingController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred while cancelling the booking: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<?> transferSeat(@RequestBody TransferRequest transferRequest) {
+        try {
+            System.out.println("=== Transfer Seat Request ===");
+            System.out.println("Endpoint: /booking/transfer");
+            System.out.println("Request body: " + transferRequest);
+            System.out.println("Booking ID: " + transferRequest.getBookingId());
+            System.out.println("New Bus ID: " + transferRequest.getNewBusId());
+            System.out.println("New Seat ID: " + transferRequest.getNewSeatId());
+            
+            if (transferRequest.getBookingId() == null) {
+                return ResponseEntity.badRequest().body("Booking ID is required");
+            }
+            
+            if (transferRequest.getNewBusId() == null) {
+                return ResponseEntity.badRequest().body("New Bus ID is required");
+            }
+            
+            if (transferRequest.getNewSeatId() == null) {
+                return ResponseEntity.badRequest().body("New Seat ID is required");
+            }
+            
+            bookingServiceImpl.transferSeat(
+                transferRequest.getBookingId(),
+                transferRequest.getNewBusId(),
+                transferRequest.getNewSeatId()
+            );
+            System.out.println("Transfer completed successfully");
+            return ResponseEntity.ok("Seat transferred successfully");
+        } catch (Exception e) {
+            System.err.println("=== Transfer Failed ===");
+            System.err.println("Error message: " + e.getMessage());
+            System.err.println("Stack trace:");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Transfer failed: " + e.getMessage());
         }
     }
 }
