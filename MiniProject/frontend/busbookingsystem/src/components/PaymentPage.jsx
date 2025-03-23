@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { addBooking } from '../services/api';
 import busImages from '../assets/busImages';
+import generateBookingPDF from './BookingPDF';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -67,6 +68,8 @@ const PaymentPage = () => {
         return;
       }
 
+      const createdBookings = [];
+
       // Create bookings for each selected seat
       for (let i = 0; i < bookingData.seatNumbers.length; i++) {
         const seatNumber = bookingData.seatNumbers[i];
@@ -75,29 +78,49 @@ const PaymentPage = () => {
           busId: bookingData.busId,
           bookingDate: bookingData.bookingDate,
           seatNumber: seatNumber,
-          amount: bookingData.bus.price, // Price per seat
-          status: 'CONFIRMED'
+          amount: bookingData.bus.price,
+          status: 'CONFIRMED',
+          // Include user and bus details for PDF generation
+          user: {
+            name: currentUser.name || currentUser.email
+          },
+          bus: {
+            name: bookingData.bus.name,
+            route: bookingData.bus.route
+          }
         };
 
         // Add passenger details if it's not the first seat
         if (i > 0) {
           const passengerDetail = passengerDetails[i - 1];
-          bookingPayload.passengerDetails = {
-            name: passengerDetail.name,
-            age: passengerDetail.age,
-            phoneNumber: passengerDetail.phoneNumber,
-            address: passengerDetail.address
+          bookingPayload.user = {
+            name: passengerDetail.name
           };
         }
         
         try {
-          await addBooking(bookingPayload);
+          const response = await addBooking(bookingPayload);
+          // Merge the response data with bus and user details for PDF
+          const bookingWithDetails = {
+            ...response.data,
+            user: i > 0 ? { name: passengerDetails[i - 1].name } : { name: currentUser.name || currentUser.email },
+            bus: {
+              name: bookingData.bus.name,
+              route: bookingData.bus.route
+            }
+          };
+          createdBookings.push(bookingWithDetails);
         } catch (err) {
           console.error(`Error creating booking for seat ${seatNumber}:`, err);
           throw new Error(`Failed to book seat ${seatNumber}. Please try again.`);
         }
       }
       
+      // Generate and download PDFs for each booking
+      createdBookings.forEach(booking => {
+        generateBookingPDF(booking);
+      });
+
       // Show success popup
       setShowSuccess(true);
       

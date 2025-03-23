@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserBookings, getAvailableBuses, getAvailableSeats, transferSeat } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import generateBookingPDF from './BookingPDF';
 import '../styles/forms.css';
 
 const TransferSeatPage = () => {
@@ -130,7 +131,26 @@ const TransferSeatPage = () => {
       }
 
       // Call the transfer API
-      await transferSeat(selectedBooking.id, selectedBus.id, newSeatId);
+      const response = await transferSeat(selectedBooking.id, selectedBus.id, newSeatId);
+
+      // Create booking details object for PDF
+      const bookingDetails = {
+        id: response.data.id || selectedBooking.id,
+        user: {
+          name: currentUser.name || currentUser.email
+        },
+        bus: {
+          name: selectedBus.name,
+          route: selectedBus.route
+        },
+        seatNumber: selectedSeat.seatNumber,
+        bookingDate: new Date().toISOString(),
+        amount: selectedBus.price,
+        status: 'CONFIRMED'
+      };
+
+      // Generate and download PDF
+      generateBookingPDF(bookingDetails);
 
       // Show success message
       setShowSuccess(true);
