@@ -1899,22 +1899,97 @@
   margin-bottom: 32px;
 }
 
-.seat-selection h3 {
-  color: #1a1a1a;
-  font-size: 20px;
-  font-weight: 600;
+.price-comparison {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
   margin-bottom: 24px;
-  letter-spacing: -0.5px;
+  border: 1px solid #e2e8f0;
+}
+
+.payment-info, .refund-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.payment-message, .refund-message {
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.payment-message {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.refund-message {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.transfer-confirmation {
+  margin-top: 16px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.checkbox-label input[type="checkbox"]:hover {
+  border-color: #4f46e5;
+}
+
+.checkbox-label span {
+  line-height: 1.4;
 }
 
 .seat-legend {
   display: flex;
   justify-content: center;
-  gap: 32px;
-  margin-bottom: 32px;
-  padding: 16px;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 1rem;
   background: white;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -1922,14 +1997,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 0.9rem;
   color: #4b5563;
 }
 
 .seat-sample {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 

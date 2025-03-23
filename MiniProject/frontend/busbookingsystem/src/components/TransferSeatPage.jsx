@@ -19,6 +19,7 @@ const TransferSeatPage = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPriorityPopup, setShowPriorityPopup] = useState(false);
   const [prioritySeatInfo, setPrioritySeatInfo] = useState(null);
+  const [transferConfirmed, setTransferConfirmed] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -117,6 +118,11 @@ const TransferSeatPage = () => {
       setLoading(true);
       setError(null);
 
+      if (!transferConfirmed) {
+        setError('Please confirm the transfer by checking the checkbox');
+        return;
+      }
+
       // Validate that a new seat is selected
       if (!selectedSeat) {
         setError('Please select a new seat');
@@ -161,6 +167,7 @@ const TransferSeatPage = () => {
       setSelectedBooking(null);
       setSelectedBus(null);
       setSelectedSeat(null);
+      setTransferConfirmed(false);
 
       // Hide success message after 3 seconds and redirect
       setTimeout(() => {
@@ -256,6 +263,7 @@ const TransferSeatPage = () => {
                   <p>Route: {booking.bus?.route || 'N/A'}</p>
                   <p>Date: {new Date(booking.bookingDate).toLocaleDateString()}</p>
                   <p>Seat: {booking.seatNumber}</p>
+                  <p className="price">Current Price: ₹{booking.bus?.price || 0}</p>
                 </div>
               </div>
             ))}
@@ -280,7 +288,7 @@ const TransferSeatPage = () => {
                         <p>Route: {bus.route}</p>
                         <p>Departure: {bus.departureTime}</p>
                         <p>Arrival: {bus.arrivalTime}</p>
-                        <p>Price: ₹{bus.price}</p>
+                        <p className="price">Price: ₹{bus.price}</p>
                       </div>
                     </div>
                   ))}
@@ -289,6 +297,60 @@ const TransferSeatPage = () => {
                 <>
                   <div className="seat-selection">
                     <h3>Select New Seat</h3>
+                    {selectedBus && selectedBooking && (
+                      <div className="price-comparison">
+                        <div className="price-details">
+                          <div className="price-item">
+                            <span className="label">Current Bus Price:</span>
+                            <span className="value">₹{selectedBooking.bus?.price || 0}</span>
+                          </div>
+                          <div className="price-item">
+                            <span className="label">New Bus Price:</span>
+                            <span className="value">₹{selectedBus.price}</span>
+                          </div>
+                          <div className="price-item difference">
+                            <span className="label">Price Difference:</span>
+                            <span className={`value ${selectedBus.price - selectedBooking.bus?.price >= 0 ? 'positive' : 'negative'}`}>
+                              ₹{selectedBus.price - (selectedBooking.bus?.price || 0)}
+                            </span>
+                          </div>
+                          {selectedBus.price - (selectedBooking.bus?.price || 0) > 0 && (
+                            <div className="payment-info">
+                              <p className="payment-message">
+                                You need to pay ₹{selectedBus.price - (selectedBooking.bus?.price || 0)} to book and confirm seats
+                              </p>
+                              <div className="transfer-confirmation">
+                                <label className="checkbox-label">
+                                  <input
+                                    type="checkbox"
+                                    checked={transferConfirmed}
+                                    onChange={(e) => setTransferConfirmed(e.target.checked)}
+                                  />
+                                  <span>I confirm that I will pay the additional amount</span>
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                          {selectedBus.price - (selectedBooking.bus?.price || 0) < 0 && (
+                            <div className="refund-info">
+                              <p className="refund-message">
+                                The difference amount of ₹{Math.abs(selectedBus.price - (selectedBooking.bus?.price || 0))} will be added to your account within 5 working days
+                              </p>
+                              <div className="transfer-confirmation">
+                                <label className="checkbox-label">
+                                  <input
+                                    type="checkbox"
+                                    checked={transferConfirmed}
+                                    onChange={(e) => setTransferConfirmed(e.target.checked)}
+                                  />
+                                  <span>I confirm the transfer and understand the refund process</span>
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className="seat-legend">
                       <div className="seat-legend-item">
                         <div className="seat-sample available"></div>
