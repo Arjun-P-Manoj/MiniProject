@@ -1994,6 +1994,17 @@
   color: #1e293b;
 }
 
+.seat-card.available {
+  background: #22c55e;
+  border-color: #16a34a;
+  color: white;
+}
+
+.seat-card.available:hover {
+  background: #16a34a;
+  transform: scale(1.05);
+}
+
 .transfer-actions {
   display: flex;
   justify-content: flex-end;

@@ -40,8 +40,10 @@ const SeatLayout = ({
         seatNumber: seat.number,
         type: seat.type,
         message: seat.type === 'ELDERLY' 
-          ? 'This is a priority seat reserved for elderly passengers.'
-          : 'This is a priority seat reserved for pregnant passengers.'
+          ? 'This is a priority seat reserved for elderly passengers. Please ensure you meet the eligibility criteria.'
+          : seat.type === 'PREGNANT'
+          ? 'This is a priority seat reserved for pregnant passengers. Please ensure you meet the eligibility criteria.'
+          : 'This is a priority seat reserved for elderly passengers.lease ensure you meet the eligibility criteria'
       });
       setShowPriorityPopup(true);
       return;

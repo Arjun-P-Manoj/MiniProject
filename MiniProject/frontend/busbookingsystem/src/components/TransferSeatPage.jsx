@@ -89,10 +89,12 @@ const TransferSeatPage = () => {
 
     if (seat.seatType !== 'REGULAR') {
       setPrioritySeatInfo({
-        ...seat,  // Include all seat properties
+        ...seat,
         message: seat.seatType === 'ELDERLY' 
-          ? 'This is a priority seat reserved for elderly passengers.'
-          : 'This is a priority seat reserved for pregnant passengers.'
+          ? 'This is a priority seat reserved for elderly passengers. Please ensure you meet the eligibility criteria.'
+          : seat.seatType === 'PREGNANT'
+          ? 'This is a priority seat reserved for pregnant passengers. Please ensure you meet the eligibility criteria.'
+          : 'This is a priority seat reserved for elderly passengers.Please ensure you meet the eligibility criteria.'
       });
       setShowPriorityPopup(true);
       return;
