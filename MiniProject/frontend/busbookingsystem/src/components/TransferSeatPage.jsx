@@ -21,6 +21,17 @@ const TransferSeatPage = () => {
   const [prioritySeatInfo, setPrioritySeatInfo] = useState(null);
   const [transferConfirmed, setTransferConfirmed] = useState(false);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   useEffect(() => {
     fetchData();
   }, [currentUser]);
@@ -261,7 +272,7 @@ const TransferSeatPage = () => {
                   <h3>Booking #{booking.id}</h3>
                   <p>Bus: {booking.bus?.name || 'N/A'}</p>
                   <p>Route: {booking.bus?.route || 'N/A'}</p>
-                  <p>Date: {new Date(booking.bookingDate).toLocaleDateString()}</p>
+                  <p>Date: {formatDate(booking.bookingDate)}</p>
                   <p>Seat: {booking.seatNumber}</p>
                   <p className="price">Current Price: ₹{booking.bus?.price || 0}</p>
                 </div>
@@ -286,7 +297,7 @@ const TransferSeatPage = () => {
                       <div className="bus-info">
                         <h3>{bus.name}</h3>
                         <p>Route: {bus.route}</p>
-                        <p>Departure: {bus.departureTime}</p>
+                        <p>Departure: {formatDate(bus.departureDate)} {bus.departureTime}</p>
                         <p>Arrival: {bus.arrivalTime}</p>
                         <p className="price">Price: ₹{bus.price}</p>
                       </div>
