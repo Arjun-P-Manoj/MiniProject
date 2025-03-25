@@ -28,8 +28,13 @@ const Login = () => {
 
     try {
       const response = await login(formData);
+      // Store role in lowercase to match database
+      const userData = {
+        ...response.data,
+        role: response.data.role?.toLowerCase()
+      };
       // Use the context to set the user
-      authLogin(response.data);
+      authLogin(userData);
       navigate('/buses');
     } catch (err) {
       console.error('Login error:', err);

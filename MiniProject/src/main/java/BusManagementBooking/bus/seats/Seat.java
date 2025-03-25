@@ -1,6 +1,7 @@
 package BusManagementBooking.bus.seats;
 
 import BusManagementBooking.bus.buses.Bus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -22,8 +23,9 @@ public class Seat {
     @Enumerated(EnumType.STRING)
     private SeatStatus status;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "bus_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "bus_id")
+    @JsonBackReference
     private Bus bus;
 
     // Enum for seat types

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { addBus } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getBusById, updateBus } from '../services/api';
 
-const AddBus = () => {
+const EditBus = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [formData, setFormData] = useState({
     name: '',
     route: '',
@@ -14,10 +15,18 @@ const AddBus = () => {
     totalSeats: '',
     price: ''
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const formatDate = (dateString) => {
+  // Function to format date from dd-mm-yyyy to yyyy-mm-dd for input
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const [day, month, year] = dateString.split('-');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Function to format date from yyyy-mm-dd to dd-mm-yyyy for backend
+  const formatDateForBackend = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -26,19 +35,36 @@ const AddBus = () => {
     return `${day}-${month}-${year}`;
   };
 
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
-    const [day, month, year] = dateString.split('-');
-    return `${year}-${month}-${day}`;
-  };
+  useEffect(() => {
+    const fetchBus = async () => {
+      try {
+        const response = await getBusById(id);
+        setFormData({
+          name: response.data.name,
+          route: response.data.route,
+          departureDate: response.data.departureDate,
+          departureTime: response.data.departureTime,
+          arrivalTime: response.data.arrivalTime,
+          availableSeats: response.data.availableSeats,
+          totalSeats: response.data.totalSeats,
+          price: response.data.price
+        });
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching bus:', err);
+        setError('Failed to fetch bus details');
+        setLoading(false);
+      }
+    };
+    fetchBus();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'departureDate') {
-      // Store the date in dd-mm-yyyy format for backend
       setFormData(prev => ({
         ...prev,
-        [name]: formatDate(value)
+        [name]: formatDateForBackend(value)
       }));
     } else {
       setFormData(prev => ({
@@ -54,29 +80,35 @@ const AddBus = () => {
     setError(null);
 
     try {
-      // Convert string values to numbers where needed
       const busData = {
         ...formData,
         availableSeats: parseInt(formData.availableSeats),
         totalSeats: parseInt(formData.totalSeats),
-        price: parseFloat(formData.price),
-        departureDate: formData.departureDate // Already in dd-mm-yyyy format
+        price: parseFloat(formData.price)
       };
       
-      console.log('Sending bus data:', busData);
-      await addBus(busData);
+      await updateBus(id, busData);
       navigate('/buses');
     } catch (err) {
-      console.error('Error adding bus:', err);
-      setError('Failed to add bus');
+      console.error('Error updating bus:', err);
+      setError('Failed to update bus');
       setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading bus details...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       <div className="page-header">
-        <h1 className="page-title">Add New Bus</h1>
+        <h1 className="page-title">Edit Bus</h1>
       </div>
 
       {error && (
@@ -210,10 +242,10 @@ const AddBus = () => {
               {loading ? (
                 <>
                   <div className="loading-spinner"></div>
-                  Adding...
+                  Updating...
                 </>
               ) : (
-                'Add Bus'
+                'Update Bus'
               )}
             </button>
           </div>
@@ -223,4 +255,4 @@ const AddBus = () => {
   );
 };
 
-export default AddBus; 
+export default EditBus; 

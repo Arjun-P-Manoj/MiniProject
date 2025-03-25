@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getBuses, deleteBus } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import busImages from '../assets/busImages';
@@ -17,22 +17,68 @@ const BusList = () => {
   });
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Function to format date to dd-mm-yyyy
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).replace(/\//g, '-');
+    if (!dateString) return 'Not specified';
+    try {
+      // If the date is already in dd-mm-yyyy format, return it as is
+      if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+        return dateString;
+      }
+      // Otherwise, try to parse and format it
+      const [day, month, year] = dateString.split('-');
+      if (day && month && year) {
+        return `${day}-${month}-${year}`;
+      }
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).replace(/\//g, '-');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
+
+  // Function to format time in 12-hour format
+  const formatTime = (timeString) => {
+    if (!timeString) return 'Not specified';
+    try {
+      // If time is in HH:mm format, convert to 12-hour format
+      if (timeString.match(/^\d{2}:\d{2}$/)) {
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+      }
+      // If time includes seconds, remove them
+      if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+      }
+      return timeString;
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return timeString;
+    }
   };
 
   const fetchBuses = async () => {
     try {
       setLoading(true);
       const response = await getBuses();
+      console.log('Fetched buses:', response.data);
       setBuses(response.data);
       setError(null);
     } catch (err) {
@@ -45,13 +91,13 @@ const BusList = () => {
 
   useEffect(() => {
     fetchBuses();
-  }, []);
+  }, [location.key]); // Refetch when navigation occurs
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this bus?')) {
       try {
         await deleteBus(id);
-        setBuses(buses.filter(bus => bus.id !== id));
+        await fetchBuses(); // Refetch the list after deletion
       } catch (err) {
         setError('Failed to delete bus. Please try again.');
         console.error('Error deleting bus:', err);
@@ -67,6 +113,13 @@ const BusList = () => {
     const { name, value } = e.target;
     if (name === 'departureDate') {
       // Convert the date to dd-mm-yyyy format for filtering
+      if (!value) {
+        setFilterCriteria(prev => ({
+          ...prev,
+          [name]: ''
+        }));
+        return;
+      }
       const date = new Date(value);
       const formattedDate = date.toLocaleDateString('en-GB', {
         day: '2-digit',
@@ -124,7 +177,7 @@ const BusList = () => {
     <div className="container">
       <div className="page-header">
         <h1 className="page-title">Available Buses</h1>
-        {currentUser?.role === 'ADMIN' && (
+        {currentUser?.role?.toLowerCase() === 'admin' && (
           <Link to="/buses/add" className="premium-btn premium-btn-primary">
             Add New Bus
           </Link>
@@ -171,7 +224,7 @@ const BusList = () => {
               <input
                 type="date"
                 name="departureDate"
-                value={filterCriteria.departureDate}
+                value={filterCriteria.departureDate ? formatDateForInput(filterCriteria.departureDate) : ''}
                 onChange={handleFilterChange}
                 className="premium-input"
               />
@@ -234,11 +287,11 @@ const BusList = () => {
                     </div>
                     <div className="bus-info-item">
                       <span className="bus-info-label">Departure:</span>
-                      <span className="bus-info-value">{bus.departureTime}</span>
+                      <span className="bus-info-value">{formatTime(bus.departureTime)}</span>
                     </div>
                     <div className="bus-info-item">
                       <span className="bus-info-label">Arrival:</span>
-                      <span className="bus-info-value">{bus.arrivalTime}</span>
+                      <span className="bus-info-value">{formatTime(bus.arrivalTime)}</span>
                     </div>
                     <div className="bus-info-item">
                       <span className="bus-info-label">Seats:</span>
@@ -258,7 +311,7 @@ const BusList = () => {
                       Book Now
                     </button>
                     
-                    {currentUser?.role === 'ADMIN' && (
+                    {currentUser?.role?.toLowerCase() === 'admin' && (
                       <div className="admin-actions">
                         <Link to={`/buses/edit/${bus.id}`} className="premium-btn premium-btn-secondary">
                           Edit
@@ -290,6 +343,13 @@ const BusList = () => {
       )}
     </div>
   );
+};
+
+// Helper function to format date for input
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const [day, month, year] = dateString.split('-');
+  return `${year}-${month}-${day}`;
 };
 
 export default BusList; 

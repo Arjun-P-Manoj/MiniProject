@@ -63,4 +63,27 @@ public class BusServiceImpl implements BusService {
         // No parameters - return all buses
         return busRepository.findAll();
     }
+
+    @Override
+    public void deleteBus(Long busId) {
+        busRepository.deleteById(busId);
+    }
+
+    @Override
+    public Bus updateBus(Long busId, BusAddRequestDTO busUpdateRequestDTO) {
+        Optional<Bus> existingBus = busRepository.findById(busId);
+        if (existingBus.isPresent()) {
+            Bus bus = existingBus.get();
+            bus.setName(busUpdateRequestDTO.getName());
+            bus.setRoute(busUpdateRequestDTO.getRoute());
+            bus.setDepartureDate(busUpdateRequestDTO.getDepartureDate());
+            bus.setDepartureTime(busUpdateRequestDTO.getDepartureTime());
+            bus.setArrivalTime(busUpdateRequestDTO.getArrivalTime());
+            bus.setAvailableSeats(busUpdateRequestDTO.getAvailableSeats());
+            bus.setTotalSeats(busUpdateRequestDTO.getTotalSeats());
+            bus.setPrice(new BigDecimal(busUpdateRequestDTO.getPrice()));
+            return busRepository.save(bus);
+        }
+        return null;
+    }
 }

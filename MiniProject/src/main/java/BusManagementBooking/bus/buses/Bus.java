@@ -1,8 +1,13 @@
 package BusManagementBooking.bus.buses;
 
+import BusManagementBooking.bus.booking.Booking;
+import BusManagementBooking.bus.seats.Seat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "buses")
@@ -35,6 +40,14 @@ public class Bus {
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+
+    @OneToMany(mappedBy = "bus", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Seat> seats = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bus", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Booking> bookings = new ArrayList<>();
 
     // Constructors
     public Bus() {}
@@ -121,5 +134,21 @@ public class Bus {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public List<Seat> getSeats() {
+        return seats;
+    }
+
+    public void setSeats(List<Seat> seats) {
+        this.seats = seats;
+    }
+
+    public List<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(List<Booking> bookings) {
+        this.bookings = bookings;
     }
 }

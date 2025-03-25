@@ -1,6 +1,7 @@
 package BusManagementBooking.bus.booking;
 
 import BusManagementBooking.bus.buses.Bus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class Booking {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bus_id", nullable = false)
     private Bus bus;

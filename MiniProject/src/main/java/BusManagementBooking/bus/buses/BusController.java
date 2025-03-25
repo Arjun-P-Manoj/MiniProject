@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("bus")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class BusController {
 
     @Autowired
@@ -50,5 +50,20 @@ public class BusController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String route) {
         return ResponseEntity.ok(busServiceImpl.searchBuses(name, route, null, null));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBus(@PathVariable Long id) {
+        busServiceImpl.deleteBus(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Bus> updateBus(@PathVariable Long id, @RequestBody BusAddRequestDTO busUpdateRequestDTO) {
+        Bus updatedBus = busServiceImpl.updateBus(id, busUpdateRequestDTO);
+        if (updatedBus != null) {
+            return ResponseEntity.ok(updatedBus);
+        }
+        return ResponseEntity.notFound().build();
     }
 }
