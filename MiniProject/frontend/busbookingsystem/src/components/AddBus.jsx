@@ -7,6 +7,7 @@ const AddBus = () => {
   const [formData, setFormData] = useState({
     name: '',
     route: '',
+    departureDate: '',
     departureTime: '',
     arrivalTime: '',
     availableSeats: '',
@@ -16,12 +17,30 @@ const AddBus = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '-');
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'departureDate') {
+      // Store the formatted date
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatDate(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -35,10 +54,11 @@ const AddBus = () => {
         ...formData,
         availableSeats: parseInt(formData.availableSeats),
         totalSeats: parseInt(formData.totalSeats),
-        price: parseFloat(formData.price)
+        price: parseFloat(formData.price),
+        departureDate: formData.departureDate // Already in dd-mm-yyyy format
       };
       
-      console.log('Sending bus data:', busData); // Log the data being sent
+      console.log('Sending bus data:', busData);
       await addBus(busData);
       navigate('/buses');
     } catch (err) {
@@ -92,9 +112,22 @@ const AddBus = () => {
           </div>
 
           <div className="form-group">
+            <label className="form-label" htmlFor="departureDate">Departure Date</label>
+            <input
+              type="date"
+              id="departureDate"
+              name="departureDate"
+              className="form-input"
+              value={formData.departureDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
             <label className="form-label" htmlFor="departureTime">Departure Time</label>
             <input
-              type="datetime-local"
+              type="time"
               id="departureTime"
               name="departureTime"
               className="form-input"

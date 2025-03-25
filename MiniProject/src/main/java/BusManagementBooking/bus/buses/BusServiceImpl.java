@@ -17,6 +17,7 @@ public class BusServiceImpl implements BusService {
         Bus bus = new Bus(
                 busAddRequestDTO.getName(),
                 busAddRequestDTO.getRoute(),
+                busAddRequestDTO.getDepartureDate(),
                 busAddRequestDTO.getDepartureTime(),
                 busAddRequestDTO.getArrivalTime(),
                 busAddRequestDTO.getAvailableSeats(),

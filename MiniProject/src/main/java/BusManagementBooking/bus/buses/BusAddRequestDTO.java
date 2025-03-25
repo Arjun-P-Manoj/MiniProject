@@ -4,6 +4,7 @@ public class BusAddRequestDTO {
 
     private String name;
     private String route;
+    private String departureDate;
     private String departureTime;
     private String arrivalTime;
     private Integer availableSeats;
@@ -14,10 +15,11 @@ public class BusAddRequestDTO {
     public BusAddRequestDTO() {}
 
     // Parameterized Constructor
-    public BusAddRequestDTO(String name, String route, String departureTime, String arrivalTime,
+    public BusAddRequestDTO(String name, String route, String departureDate, String departureTime, String arrivalTime,
                             Integer availableSeats, Integer totalSeats, double price) {
         this.name = name;
         this.route = route;
+        this.departureDate = departureDate;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
         this.availableSeats = availableSeats;
@@ -40,6 +42,14 @@ public class BusAddRequestDTO {
 
     public void setRoute(String route) {
         this.route = route;
+    }
+
+    public String getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(String departureDate) {
+        this.departureDate = departureDate;
     }
 
     public String getDepartureTime() {

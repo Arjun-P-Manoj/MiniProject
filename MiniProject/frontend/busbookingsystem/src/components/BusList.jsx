@@ -13,9 +13,21 @@ const BusList = () => {
     route: '',
     minPrice: '',
     maxPrice: '',
+    departureDate: ''
   });
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
+  // Function to format date to dd-mm-yyyy
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '-');
+  };
 
   const fetchBuses = async () => {
     try {
@@ -53,10 +65,24 @@ const BusList = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilterCriteria({
-      ...filterCriteria,
-      [name]: value,
-    });
+    if (name === 'departureDate') {
+      // Convert the date to dd-mm-yyyy format for filtering
+      const date = new Date(value);
+      const formattedDate = date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).replace(/\//g, '-');
+      setFilterCriteria(prev => ({
+        ...prev,
+        [name]: formattedDate
+      }));
+    } else {
+      setFilterCriteria(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const resetFilters = () => {
@@ -65,6 +91,7 @@ const BusList = () => {
       route: '',
       minPrice: '',
       maxPrice: '',
+      departureDate: ''
     });
   };
 
@@ -86,7 +113,11 @@ const BusList = () => {
     const matchesMaxPrice = !filterCriteria.maxPrice || 
       bus.price <= Number(filterCriteria.maxPrice);
     
-    return matchesSearch && matchesRoute && matchesMinPrice && matchesMaxPrice;
+    // Departure date filter
+    const matchesDepartureDate = !filterCriteria.departureDate || 
+      bus.departureDate === filterCriteria.departureDate;
+    
+    return matchesSearch && matchesRoute && matchesMinPrice && matchesMaxPrice && matchesDepartureDate;
   });
 
   return (
@@ -131,6 +162,16 @@ const BusList = () => {
                 name="route"
                 placeholder="Filter by route"
                 value={filterCriteria.route}
+                onChange={handleFilterChange}
+                className="premium-input"
+              />
+            </div>
+            <div className="premium-form-group">
+              <label className="premium-label">Departure Date</label>
+              <input
+                type="date"
+                name="departureDate"
+                value={filterCriteria.departureDate}
                 onChange={handleFilterChange}
                 className="premium-input"
               />
@@ -187,6 +228,10 @@ const BusList = () => {
                   <p className="bus-route">{bus.route}</p>
                   
                   <div className="bus-info-grid">
+                    <div className="bus-info-item">
+                      <span className="bus-info-label">Departure Date:</span>
+                      <span className="bus-info-value">{formatDate(bus.departureDate)}</span>
+                    </div>
                     <div className="bus-info-item">
                       <span className="bus-info-label">Departure:</span>
                       <span className="bus-info-value">{bus.departureTime}</span>

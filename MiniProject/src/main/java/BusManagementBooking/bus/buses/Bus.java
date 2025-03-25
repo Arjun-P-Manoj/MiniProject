@@ -18,6 +18,9 @@ public class Bus {
     @Column(name = "route", nullable = false, length = 200)
     private String route;
 
+    @Column(name = "departure_date", nullable = false)
+    private String departureDate;
+
     @Column(name = "departure_time", nullable = false, length = 50)
     private String departureTime;
 
@@ -36,9 +39,10 @@ public class Bus {
     // Constructors
     public Bus() {}
 
-    public Bus(String name, String route, String departureTime, String arrivalTime, Integer availableSeats, Integer totalSeats, BigDecimal price) {
+    public Bus(String name, String route, String departureDate, String departureTime, String arrivalTime, Integer availableSeats, Integer totalSeats, BigDecimal price) {
         this.name = name;
         this.route = route;
+        this.departureDate = departureDate;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
         this.availableSeats = availableSeats;
@@ -69,6 +73,14 @@ public class Bus {
 
     public void setRoute(String route) {
         this.route = route;
+    }
+
+    public String getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(String departureDate) {
+        this.departureDate = departureDate;
     }
 
     public String getDepartureTime() {
