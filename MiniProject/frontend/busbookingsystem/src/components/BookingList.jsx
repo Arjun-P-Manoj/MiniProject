@@ -12,6 +12,17 @@ const BookingList = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   useEffect(() => {
     fetchBookings();
   }, [currentUser]);
@@ -219,6 +230,13 @@ const BookingList = () => {
                       <span className="booking-detail-label">Date & Time</span>
                       <span className="booking-detail-value">
                         {new Date(booking.bookingDate).toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    <div className="booking-detail-item">
+                      <span className="booking-detail-label">Departure Date</span>
+                      <span className="booking-detail-value">
+                        {formatDate(booking.bus?.departureDate)}
                       </span>
                     </div>
                     
